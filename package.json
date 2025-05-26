@@ -1,27 +1,57 @@
 {
   "name": "healthcare-sim",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "AI-powered healthcare simulation case generator for medical education",
   "private": true,
+  "keywords": [
+    "healthcare",
+    "medical education",
+    "simulation",
+    "AI",
+    "Claude",
+    "Next.js",
+    "TypeScript"
+  ],
+  "author": "Healthcare Simulation Team",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "rm -rf .next out dist"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0",
+    "@types/uuid": "^10.0.0",
+    "clsx": "^2.1.1",
+    "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.3.2"
+    "react-hook-form": "^7.56.4",
+    "react-hot-toast": "^2.5.2",
+    "uuid": "^11.1.0",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20.17.50",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
-    "@eslint/eslintrc": "^3"
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }
