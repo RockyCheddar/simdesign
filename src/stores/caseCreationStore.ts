@@ -5,7 +5,6 @@ import {
   LearningContext, 
   RefinedObjectives, 
   ParameterQuestion,
-  ParameterAnswers,
   CasePreview,
   GenerationProgress,
   FORM_STEPS
@@ -21,9 +20,12 @@ interface CaseCreationStore extends CaseCreationFormData {
   updateLearningContext: (data: Partial<LearningContext>) => void;
   updateRefinedObjectives: (data: Partial<RefinedObjectives>) => void;
   updateParameterQuestions: (questions: ParameterQuestion[]) => void;
-  updateParameterAnswer: (questionId: string, answer: any) => void;
+  updateParameterAnswer: (questionId: string, answer: string | number | boolean | string[]) => void;
   updateCasePreview: (data: Partial<CasePreview>) => void;
   updateGenerationProgress: (data: Partial<GenerationProgress>) => void;
+  
+  // AI generation actions
+  generateParameterQuestions: () => Promise<void>;
   
   // Validation actions
   validateCurrentStep: () => boolean;
@@ -95,7 +97,7 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
       set({ parameterQuestions: questions });
     },
 
-    updateParameterAnswer: (questionId: string, answer: any) => {
+    updateParameterAnswer: (questionId: string, answer: string | number | boolean | string[]) => {
       set(state => ({
         parameterAnswers: { ...state.parameterAnswers, [questionId]: answer }
       }));
@@ -111,6 +113,61 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
       set(state => ({
         generationProgress: { ...state.generationProgress, ...data }
       }));
+    },
+
+    // AI generation actions
+    generateParameterQuestions: async () => {
+      const { learningContext, refinedObjectives } = get();
+      
+      try {
+        set(state => ({
+          generationProgress: { ...state.generationProgress, status: 'generating', currentPhase: 'Generating parameter questions...' }
+        }));
+
+        // Call the API endpoint
+        const response = await fetch('/api/ai/parameter-questions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            learningContext,
+            refinedObjectives: refinedObjectives.selectedObjectives || []
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.details || errorData.error || 'Failed to generate questions');
+        }
+
+        const { questions: aiQuestions } = await response.json();
+
+        // Convert AI questions to ParameterQuestion format
+        const questions: ParameterQuestion[] = aiQuestions.map((q: any) => ({
+          id: q.id,
+          category: q.category,
+          question: q.question,
+          type: 'select' as const,
+          options: q.options,
+          required: true
+        }));
+
+        set(state => ({
+          parameterQuestions: questions,
+          generationProgress: { ...state.generationProgress, status: 'completed', currentPhase: 'Questions generated successfully' }
+        }));
+      } catch (error) {
+        console.error('Error generating parameter questions:', error);
+        set(state => ({
+          generationProgress: { 
+            ...state.generationProgress, 
+            status: 'error', 
+            currentPhase: 'Failed to generate questions',
+            error: error instanceof Error ? error.message : 'Unknown error'
+          }
+        }));
+      }
     },
 
     // Validation actions

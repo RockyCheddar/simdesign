@@ -9,33 +9,42 @@ export interface LearningContext {
   learningObjectives?: string[];
 }
 
+export interface RefinedObjective {
+  original: string;
+  refined: string;
+  explanation: string;
+  accepted: boolean;
+}
+
 export interface RefinedObjectives {
   originalObjectives: string[];
-  aiImprovedObjectives: string[];
+  aiImprovedObjectives: RefinedObjective[];
   selectedObjectives: string[];
   feedback?: string;
+  isLoading?: boolean;
+  error?: string;
 }
 
 export interface ParameterQuestion {
   id: string;
-  category: 'clinical_scenario' | 'resources' | 'complexity' | 'assessment';
+  category: 'clinical_scenario' | 'simulation_resources' | 'complexity_fidelity' | 'assessment_methods' | 'facilitation_style';
   question: string;
-  type: 'text' | 'select' | 'multiselect' | 'range' | 'boolean';
+  type: 'select' | 'multiselect' | 'text' | 'range' | 'boolean';
   options?: string[];
   required: boolean;
-  answer?: any;
+  answer?: string | number | boolean | string[];
 }
 
 export interface ParameterAnswers {
-  [questionId: string]: any;
+  [questionId: string]: string | number | boolean | string[];
 }
 
 export interface CasePreview {
-  learningContext: LearningContext;
-  refinedObjectives: RefinedObjectives;
-  parameterAnswers: ParameterAnswers;
-  estimatedGenerationTime: number;
-  complexityScore: number;
+  learningContext?: Partial<LearningContext>;
+  refinedObjectives?: Partial<RefinedObjectives>;
+  parameterAnswers?: ParameterAnswers;
+  estimatedGenerationTime?: number;
+  complexityScore?: number;
 }
 
 export interface GenerationProgress {

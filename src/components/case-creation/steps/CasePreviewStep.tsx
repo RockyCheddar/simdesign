@@ -26,8 +26,10 @@ const CasePreviewStep: React.FC = () => {
     }
     
     // Add complexity from parameters
-    if (parameterAnswers.complexity_factors?.length > 2) score += 1;
-    if (parameterAnswers.critical_thinking > 3) score += 1;
+    const complexityFactors = parameterAnswers.complexity_factors;
+    if (Array.isArray(complexityFactors) && complexityFactors.length > 2) score += 1;
+    const criticalThinking = parameterAnswers.critical_thinking;
+    if (typeof criticalThinking === 'number' && criticalThinking > 3) score += 1;
     if (parameterAnswers.team_dynamics === true) score += 1;
     
     return Math.min(score, 5);
@@ -48,8 +50,8 @@ const CasePreviewStep: React.FC = () => {
     const estimatedTime = estimateGenerationTime();
     
     updateCasePreview({
-      learningContext: learningContext as any,
-      refinedObjectives: refinedObjectives as any,
+      learningContext,
+      refinedObjectives,
       parameterAnswers,
       complexityScore,
       estimatedGenerationTime: estimatedTime

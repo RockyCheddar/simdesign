@@ -8,7 +8,7 @@ const LearningContextStep: React.FC = () => {
   const errors = useFormErrors();
   const { updateLearningContext, clearError } = useCaseCreationStore();
 
-  const handleInputChange = (field: keyof typeof learningContext, value: any) => {
+  const handleInputChange = (field: keyof typeof learningContext, value: string | number | string[]) => {
     updateLearningContext({ [field]: value });
     if (errors[field]) {
       clearError(field);
