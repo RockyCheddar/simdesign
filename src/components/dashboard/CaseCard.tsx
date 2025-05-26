@@ -43,7 +43,7 @@ const CaseCard: React.FC<CaseCardProps> = ({ simulationCase, onDelete, onView })
     try {
       exportCaseAsJSON(simulationCase);
       toast.success('Case exported successfully');
-    } catch (error) {
+    } catch {
       toast.error('Failed to export case');
     }
   };
@@ -60,7 +60,7 @@ const CaseCard: React.FC<CaseCardProps> = ({ simulationCase, onDelete, onView })
       } else {
         toast.error('Failed to delete case');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete case');
     } finally {
       setIsDeleting(false);

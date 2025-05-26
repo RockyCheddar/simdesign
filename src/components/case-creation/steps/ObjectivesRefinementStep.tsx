@@ -37,7 +37,7 @@ const ObjectivesRefinementStep: React.FC = () => {
         error: undefined
       });
     }
-  }, [learningContext.learningObjectives, refinedObjectives.originalObjectives]);
+  }, [learningContext.learningObjectives, refinedObjectives.originalObjectives, updateRefinedObjectives]);
 
   const handleRefineObjectives = async () => {
     if (!learningContext.learningObjectives?.length) {

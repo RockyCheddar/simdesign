@@ -12,7 +12,7 @@ const ProgressStepper: React.FC<ProgressStepperProps> = ({
   allowClickNavigation = true 
 }) => {
   const currentStep = useCurrentStep();
-  const { goToStep, validateCurrentStep } = useCaseCreationStore();
+  const { goToStep } = useCaseCreationStore();
 
   const handleStepClick = (stepNumber: number) => {
     if (!allowClickNavigation) return;

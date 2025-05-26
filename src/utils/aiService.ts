@@ -168,7 +168,7 @@ export function parseObjectiveRefinementResponse(content: string): ObjectiveRefi
         console.warn('Second JSON parse attempt failed, trying manual reconstruction:', secondError);
         
         // Third attempt: try to manually fix common issues
-        let manuallyFixed = jsonString
+        const manuallyFixed = jsonString
           .replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ') // Replace all control chars with spaces
           .replace(/\s+/g, ' ') // Collapse spaces
           .replace(/,\s*}/g, '}') // Remove trailing commas

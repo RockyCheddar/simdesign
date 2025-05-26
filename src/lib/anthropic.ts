@@ -242,7 +242,7 @@ export const generateParameterQuestions = async (
   question: string;
   options: string[];
 }>> => {
-  let response: any = null;
+  let response: Anthropic.Messages.Message | null = null;
   try {
     const prompt = `Based on the learning context and refined objectives below, generate 6-8 critical parameter questions for creating a realistic healthcare simulation case that follows INACSL best practices.
 
@@ -353,7 +353,7 @@ Ensure questions are:
         console.warn('Second JSON parse attempt failed, trying manual reconstruction:', secondError);
         
         // Third attempt: try to manually fix common issues
-        let manuallyFixed = jsonString
+        const manuallyFixed = jsonString
           .replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ') // Replace all control chars with spaces
           .replace(/\s+/g, ' ') // Collapse spaces
           .replace(/,\s*}/g, '}') // Remove trailing commas
@@ -385,7 +385,7 @@ Ensure questions are:
     return validatedQuestions;
   } catch (error) {
     console.error('Error generating parameter questions with Claude:', error);
-    console.error('Raw response:', response?.content?.[0]?.text || 'No response content');
+    console.error('Raw response:', response?.content?.[0]?.type === 'text' ? response.content[0].text : 'No response content');
     throw new Error(
       error instanceof Error 
         ? `Failed to generate parameter questions: ${error.message}`

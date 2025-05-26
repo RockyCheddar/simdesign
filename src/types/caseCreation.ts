@@ -55,6 +55,160 @@ export interface GenerationProgress {
   error?: string;
 }
 
+// Enhanced types for comprehensive case generation
+export interface VitalSign {
+  value: number;
+  unit: string;
+  normalRange: string;
+  status: 'normal' | 'elevated' | 'high' | 'critical' | 'low';
+  colorCode: 'green' | 'yellow' | 'red';
+  displaySize: 'large bold numbers for card display';
+}
+
+export interface BloodPressure {
+  systolic: number;
+  diastolic: number;
+  unit: string;
+  normalRange: string;
+  status: 'normal' | 'elevated' | 'high' | 'critical';
+  colorCode: 'green' | 'yellow' | 'red';
+  displaySize: 'large bold numbers for card display';
+}
+
+export interface OxygenSaturation extends VitalSign {
+  oxygenSupport: string;
+}
+
+export interface VitalSigns {
+  temperature: VitalSign;
+  heartRate: VitalSign;
+  bloodPressure: BloodPressure;
+  respiratoryRate: VitalSign;
+  oxygenSaturation: OxygenSaturation;
+}
+
+export interface PhysicalExamFindings {
+  general: string;
+  primarySystem: string;
+  keyAbnormalities: string[];
+  normalFindings: string[];
+}
+
+export interface Medication {
+  name: string;
+  dose: string;
+  frequency: string;
+  indication: string;
+}
+
+export interface PatientDemographics {
+  fullName: string;
+  age: number;
+  gender: 'male' | 'female' | 'other';
+  weight: number; // in kg, one decimal
+  height: number; // in cm
+  BMI: number; // calculated, one decimal
+}
+
+export interface HistoryPresentIllness {
+  onset: string;
+  duration: string;
+  severity: string;
+  associatedSymptoms: string[];
+  timeline: string; // paragraph format
+}
+
+export interface ClinicalSetting {
+  location: string;
+  timeOfDay: string;
+  acuity: 'high' | 'medium' | 'low';
+  environmentalFactors: string;
+}
+
+export interface PatientBasics {
+  name: string;
+  age: number;
+  gender: 'male' | 'female' | 'other';
+  race: string;
+}
+
+export interface Intervention {
+  intervention: string;
+  rationale: string;
+  timing: string;
+  expectedOutcome: string;
+}
+
+export interface TreatmentPlan {
+  immediate: string[];
+  shortTerm: string[];
+  monitoring: string[];
+}
+
+export interface ScenarioProgression {
+  phase1: string;
+  phase2: string;
+  phase3: string;
+  endPoint: string;
+}
+
+export interface CompetencyArea {
+  domain: string;
+  specificSkills: string[];
+  assessmentCriteria: string[];
+}
+
+export interface CoreAssessment {
+  criticalActions: string[];
+  performanceIndicators: string[];
+  safetyConsiderations: string[];
+}
+
+// Main case data structure
+export interface GeneratedCaseData {
+  overview: {
+    caseTitle: string; // max 80 chars
+    caseSummary: string; // 2-3 sentences
+    learningObjectives: string[];
+    patientBasics: PatientBasics;
+    clinicalSetting: ClinicalSetting;
+  };
+  patient: {
+    demographics: PatientDemographics;
+    chiefComplaint: string; // patient's own words, 1-2 sentences
+    historyPresentIllness: HistoryPresentIllness;
+    currentMedications: Medication[];
+  };
+  presentation: {
+    vitalSigns: VitalSigns;
+    physicalExamFindings: PhysicalExamFindings;
+  };
+  treatment: {
+    initialInterventions: Intervention[];
+    treatmentPlan: TreatmentPlan;
+    scenarioProgression: ScenarioProgression;
+  };
+  simulation: {
+    learningObjectives: string[];
+    competencyAreas: CompetencyArea[];
+    coreAssessment: CoreAssessment;
+  };
+  // Smart defaults and on-demand content
+  smartDefaults: {
+    [key: string]: string | undefined;
+  };
+  onDemandOptions: {
+    [key: string]: string | undefined;
+  };
+}
+
+export interface SmartDefaults {
+  expanded: string[]; // Advanced learners OR duration >45min OR high complexity
+  minimal: string[]; // Novice learners OR duration <30min OR low complexity
+  acuteCare: string[]; // ICU/Emergency cases
+  procedural: string[]; // Procedural/Skills cases
+}
+
 export interface CaseCreationFormData {
   currentStep: number;
   learningContext: Partial<LearningContext>;
@@ -63,6 +217,7 @@ export interface CaseCreationFormData {
   parameterAnswers: ParameterAnswers;
   casePreview: Partial<CasePreview>;
   generationProgress: GenerationProgress;
+  generatedCase?: GeneratedCaseData;
   isValid: boolean;
   errors: Record<string, string>;
 }

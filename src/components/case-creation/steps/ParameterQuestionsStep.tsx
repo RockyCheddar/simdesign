@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParameterQuestions, useParameterAnswers, useCaseCreationStore, useLearningContext, useRefinedObjectives, useGenerationProgress } from '@/stores/caseCreationStore';
-import { ParameterQuestion } from '@/types/caseCreation';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParameterQuestions, useParameterAnswers, useCaseCreationStore, useRefinedObjectives, useGenerationProgress } from '@/stores/caseCreationStore';
 
 const ParameterQuestionsStep: React.FC = () => {
   const parameterQuestions = useParameterQuestions();
   const parameterAnswers = useParameterAnswers();
-  const learningContext = useLearningContext();
   const refinedObjectives = useRefinedObjectives();
   const generationProgress = useGenerationProgress();
   const { updateParameterAnswer, generateParameterQuestions } = useCaseCreationStore();
@@ -16,14 +14,7 @@ const ParameterQuestionsStep: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
 
-  // Generate questions when component mounts if not already generated
-  useEffect(() => {
-    if (!hasGenerated && parameterQuestions.length === 0 && refinedObjectives.selectedObjectives?.length) {
-      handleGenerateQuestions();
-    }
-  }, [refinedObjectives.selectedObjectives, hasGenerated, parameterQuestions.length]);
-
-  const handleGenerateQuestions = async () => {
+  const handleGenerateQuestions = useCallback(async () => {
     setIsGenerating(true);
     try {
       await generateParameterQuestions();
@@ -33,7 +24,14 @@ const ParameterQuestionsStep: React.FC = () => {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [generateParameterQuestions]);
+
+  // Generate questions when component mounts if not already generated
+  useEffect(() => {
+    if (!hasGenerated && parameterQuestions.length === 0 && refinedObjectives.selectedObjectives?.length) {
+      handleGenerateQuestions();
+    }
+  }, [refinedObjectives.selectedObjectives, hasGenerated, parameterQuestions.length, handleGenerateQuestions]);
 
   const handleAnswerChange = (questionId: string, value: string) => {
     updateParameterAnswer(questionId, value);

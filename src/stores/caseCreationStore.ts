@@ -26,6 +26,7 @@ interface CaseCreationStore extends CaseCreationFormData {
   
   // AI generation actions
   generateParameterQuestions: () => Promise<void>;
+  generateComprehensiveCase: () => Promise<void>;
   
   // Validation actions
   validateCurrentStep: () => boolean;
@@ -36,6 +37,9 @@ interface CaseCreationStore extends CaseCreationFormData {
   // Reset actions
   resetForm: () => void;
   resetToStep: (step: number) => void;
+  
+  // Saved case tracking
+  savedCaseId: string | null;
 }
 
 const initialState: CaseCreationFormData = {
@@ -54,9 +58,14 @@ const initialState: CaseCreationFormData = {
   errors: {}
 };
 
+const initialStoreState = {
+  ...initialState,
+  savedCaseId: null as string | null
+};
+
 export const useCaseCreationStore = create<CaseCreationStore>()(
   subscribeWithSelector((set, get) => ({
-    ...initialState,
+    ...initialStoreState,
 
     // Navigation actions
     nextStep: () => {
@@ -144,7 +153,12 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
         const { questions: aiQuestions } = await response.json();
 
         // Convert AI questions to ParameterQuestion format
-        const questions: ParameterQuestion[] = aiQuestions.map((q: any) => ({
+        const questions: ParameterQuestion[] = aiQuestions.map((q: {
+          id: string;
+          category: string;
+          question: string;
+          options: string[];
+        }) => ({
           id: q.id,
           category: q.category,
           question: q.question,
@@ -164,6 +178,129 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
             ...state.generationProgress, 
             status: 'error', 
             currentPhase: 'Failed to generate questions',
+            error: error instanceof Error ? error.message : 'Unknown error'
+          }
+        }));
+      }
+    },
+
+    generateComprehensiveCase: async () => {
+      const { learningContext, refinedObjectives, parameterAnswers } = get();
+      
+      try {
+        // Reset and start generation
+        set(() => ({
+          generationProgress: { 
+            status: 'generating', 
+            currentPhase: 'Analyzing learning context...', 
+            progress: 0,
+            estimatedTimeRemaining: 90
+          }
+        }));
+
+        // Phase 1: Analyzing context
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        set(state => ({
+          generationProgress: { 
+            ...state.generationProgress, 
+            currentPhase: 'Creating patient profile...', 
+            progress: 20,
+            estimatedTimeRemaining: 70
+          }
+        }));
+
+        // Phase 2: Call the API
+        const response = await fetch('/api/ai/generate-comprehensive-case', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            learningContext,
+            refinedObjectives: refinedObjectives.selectedObjectives || [],
+            parameterAnswers
+          }),
+        });
+
+        // Phase 3: Processing response
+        set(state => ({
+          generationProgress: { 
+            ...state.generationProgress, 
+            currentPhase: 'Generating clinical scenario...', 
+            progress: 60,
+            estimatedTimeRemaining: 30
+          }
+        }));
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.details || errorData.error || 'Failed to generate case');
+        }
+
+        const result = await response.json();
+
+        // Phase 4: Finalizing
+        set(state => ({
+          generationProgress: { 
+            ...state.generationProgress, 
+            currentPhase: 'Finalizing case materials...', 
+            progress: 90,
+            estimatedTimeRemaining: 5
+          }
+        }));
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Complete generation
+        set((state) => ({
+          generatedCase: result.data,
+          generationProgress: { 
+            status: 'completed', 
+            currentPhase: 'Case generated successfully!', 
+            progress: 100,
+            estimatedTimeRemaining: 0
+          }
+        }));
+
+        // Save the generated case to localStorage for dashboard access
+        try {
+          const { convertAndSaveGeneratedCase } = await import('@/utils/caseConversion');
+          const { toast } = await import('react-hot-toast');
+          const { learningContext } = get();
+          
+          console.log('Attempting to save case with data:', result.data);
+          console.log('Learning context:', learningContext);
+          
+          const savedCase = convertAndSaveGeneratedCase(result.data, learningContext);
+          console.log('Case saved to dashboard successfully:', savedCase.id);
+          console.log('Saved case details:', savedCase);
+          
+          // Store the saved case ID for navigation
+          set(state => ({
+            ...state,
+            savedCaseId: savedCase.id
+          }));
+          
+          toast.success(`Case "${savedCase.title}" saved to dashboard!`, {
+            duration: 4000,
+            icon: '💾'
+          });
+        } catch (saveError) {
+          console.error('Failed to save case to dashboard:', saveError);
+          console.error('Error details:', saveError);
+          const { toast } = await import('react-hot-toast');
+          toast.error(`Failed to save case: ${saveError instanceof Error ? saveError.message : 'Unknown error'}`, {
+            duration: 6000
+          });
+        }
+
+      } catch (error) {
+        console.error('Error generating comprehensive case:', error);
+        set(() => ({
+          generationProgress: { 
+            status: 'error', 
+            currentPhase: 'Failed to generate case',
+            progress: 0,
             error: error instanceof Error ? error.message : 'Unknown error'
           }
         }));
@@ -257,12 +394,12 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
 
     // Reset actions
     resetForm: () => {
-      set(initialState);
+      set(initialStoreState);
     },
 
     resetToStep: (step: number) => {
       set(state => ({
-        ...initialState,
+        ...initialStoreState,
         currentStep: step,
         learningContext: step > 1 ? state.learningContext : {},
         refinedObjectives: step > 2 ? state.refinedObjectives : {},
@@ -281,5 +418,7 @@ export const useParameterQuestions = () => useCaseCreationStore(state => state.p
 export const useParameterAnswers = () => useCaseCreationStore(state => state.parameterAnswers);
 export const useCasePreview = () => useCaseCreationStore(state => state.casePreview);
 export const useGenerationProgress = () => useCaseCreationStore(state => state.generationProgress);
+export const useGeneratedCase = () => useCaseCreationStore(state => state.generatedCase);
 export const useFormErrors = () => useCaseCreationStore(state => state.errors);
-export const useFormValid = () => useCaseCreationStore(state => state.isValid); 
+export const useFormValid = () => useCaseCreationStore(state => state.isValid);
+export const useSavedCaseId = () => useCaseCreationStore(state => state.savedCaseId); 

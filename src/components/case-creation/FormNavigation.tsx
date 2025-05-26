@@ -32,7 +32,12 @@ const FormNavigation: React.FC<FormNavigationProps> = ({
 
   const handleNext = () => {
     if (validateCurrentStep()) {
-      if (isLastStep && onComplete) {
+      if (isLastStep && isGenerationStep && generationProgress.status === 'completed') {
+        // For completed generation, just show success message - don't redirect
+        if (onComplete) {
+          onComplete();
+        }
+      } else if (isLastStep && onComplete) {
         onComplete();
       } else {
         nextStep();

@@ -15,7 +15,7 @@ const CasePreviewStep: React.FC = () => {
   const { updateCasePreview } = useCaseCreationStore();
 
   // Calculate complexity score based on parameters
-  const calculateComplexityScore = () => {
+  const calculateComplexityScore = React.useCallback(() => {
     let score = 0;
     
     // Base complexity from experience level
@@ -33,17 +33,17 @@ const CasePreviewStep: React.FC = () => {
     if (parameterAnswers.team_dynamics === true) score += 1;
     
     return Math.min(score, 5);
-  };
+  }, [learningContext.experienceLevel, parameterAnswers]);
 
   // Estimate generation time
-  const estimateGenerationTime = () => {
+  const estimateGenerationTime = React.useCallback(() => {
     const complexityScore = calculateComplexityScore();
     const baseTime = 60; // seconds
     const durationMultiplier = (learningContext.duration || 30) / 30;
     const objectivesMultiplier = (refinedObjectives.selectedObjectives?.length || 1) / 3;
     
     return Math.round(baseTime * complexityScore * durationMultiplier * objectivesMultiplier);
-  };
+  }, [calculateComplexityScore, learningContext.duration, refinedObjectives.selectedObjectives]);
 
   React.useEffect(() => {
     const complexityScore = calculateComplexityScore();
@@ -56,7 +56,7 @@ const CasePreviewStep: React.FC = () => {
       complexityScore,
       estimatedGenerationTime: estimatedTime
     });
-  }, [learningContext, refinedObjectives, parameterAnswers]);
+  }, [learningContext, refinedObjectives, parameterAnswers, calculateComplexityScore, estimateGenerationTime, updateCasePreview]);
 
   const formatDuration = (minutes: number) => {
     if (minutes < 60) return `${minutes} minutes`;

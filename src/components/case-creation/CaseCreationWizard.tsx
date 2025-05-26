@@ -24,10 +24,11 @@ const CaseCreationWizard: React.FC = () => {
 
   const handleComplete = () => {
     // This will be called when the case generation is complete
-    toast.success('Case created successfully!');
-    // For now, redirect back to dashboard
-    // In the future, this could redirect to the case view page
-    router.push('/');
+    // The case is already displayed in the CaseGenerationStep component
+    // We don't need to redirect anywhere - just show a success message
+    toast.success('Case created and saved successfully!');
+    // The user can now view the case details on the current page
+    // or navigate back to dashboard manually
   };
 
   const renderCurrentStep = () => {

@@ -1,0 +1,199 @@
+'use client';
+
+import React, { useState } from 'react';
+import { GeneratedCaseData } from '@/types/caseCreation';
+import OnDemandSection from '../components/OnDemandSection';
+import InfoCard from '../components/InfoCard';
+import VitalSignCard from '../components/VitalSignCard';
+
+interface PresentationTabProps {
+  caseData: GeneratedCaseData;
+}
+
+const PresentationTab: React.FC<PresentationTabProps> = ({ caseData }) => {
+  const [onDemandContent, setOnDemandContent] = useState<Record<string, string>>({});
+
+  const handleContentGenerated = (sectionId: string, content: string) => {
+    setOnDemandContent(prev => ({ ...prev, [sectionId]: content }));
+  };
+
+  const vitalSigns = caseData.presentation?.vitalSigns;
+
+  return (
+    <div className="space-y-8">
+      {/* Vital Signs Grid */}
+      <InfoCard title="Vital Signs">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {vitalSigns?.temperature && (
+            <VitalSignCard
+              label="Temperature"
+              value={vitalSigns.temperature.value}
+              unit={vitalSigns.temperature.unit}
+              normalRange={vitalSigns.temperature.normalRange}
+              status={vitalSigns.temperature.status}
+              colorCode={vitalSigns.temperature.colorCode}
+            />
+          )}
+          
+          {vitalSigns?.heartRate && (
+            <VitalSignCard
+              label="Heart Rate"
+              value={vitalSigns.heartRate.value}
+              unit={vitalSigns.heartRate.unit}
+              normalRange={vitalSigns.heartRate.normalRange}
+              status={vitalSigns.heartRate.status}
+              colorCode={vitalSigns.heartRate.colorCode}
+            />
+          )}
+          
+          {vitalSigns?.bloodPressure && (
+            <VitalSignCard
+              label="Blood Pressure"
+              value={`${vitalSigns.bloodPressure.systolic}/${vitalSigns.bloodPressure.diastolic}`}
+              unit={vitalSigns.bloodPressure.unit}
+              normalRange={vitalSigns.bloodPressure.normalRange}
+              status={vitalSigns.bloodPressure.status}
+              colorCode={vitalSigns.bloodPressure.colorCode}
+            />
+          )}
+          
+          {vitalSigns?.respiratoryRate && (
+            <VitalSignCard
+              label="Respiratory Rate"
+              value={vitalSigns.respiratoryRate.value}
+              unit={vitalSigns.respiratoryRate.unit}
+              normalRange={vitalSigns.respiratoryRate.normalRange}
+              status={vitalSigns.respiratoryRate.status}
+              colorCode={vitalSigns.respiratoryRate.colorCode}
+            />
+          )}
+          
+          {vitalSigns?.oxygenSaturation && (
+            <VitalSignCard
+              label="Oxygen Saturation"
+              value={vitalSigns.oxygenSaturation.value}
+              unit={vitalSigns.oxygenSaturation.unit}
+              normalRange={vitalSigns.oxygenSaturation.normalRange}
+              status={vitalSigns.oxygenSaturation.status}
+              colorCode={vitalSigns.oxygenSaturation.colorCode}
+              additionalInfo={vitalSigns.oxygenSaturation.oxygenSupport}
+            />
+          )}
+        </div>
+      </InfoCard>
+
+      {/* Physical Examination Findings */}
+      <InfoCard title="Physical Examination Findings">
+        <div className="space-y-6">
+          {caseData.presentation?.physicalExamFindings?.general && (
+            <div>
+              <h4 className="text-lg font-medium text-gray-900 mb-2">General Appearance</h4>
+              <p className="text-gray-700">
+                {caseData.presentation.physicalExamFindings.general}
+              </p>
+            </div>
+          )}
+
+          {caseData.presentation?.physicalExamFindings?.primarySystem && (
+            <div>
+              <h4 className="text-lg font-medium text-gray-900 mb-2">Primary System Examination</h4>
+              <p className="text-gray-700">
+                {caseData.presentation.physicalExamFindings.primarySystem}
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {caseData.presentation?.physicalExamFindings?.keyAbnormalities && (
+              <div>
+                <h4 className="text-lg font-medium text-gray-900 mb-3">Key Abnormalities</h4>
+                <ul className="space-y-2">
+                  {caseData.presentation.physicalExamFindings.keyAbnormalities.map((finding, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="text-red-500 mr-2 mt-1">⚠️</span>
+                      <span className="text-red-700 font-medium">{finding}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {caseData.presentation?.physicalExamFindings?.normalFindings && (
+              <div>
+                <h4 className="text-lg font-medium text-gray-900 mb-3">Normal Findings</h4>
+                <ul className="space-y-2">
+                  {caseData.presentation.physicalExamFindings.normalFindings.map((finding, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="text-green-500 mr-2 mt-1">✓</span>
+                      <span className="text-gray-700">{finding}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </InfoCard>
+
+      {/* Laboratory Results (if available) */}
+      {caseData.smartDefaults?.laboratoryResults && (
+        <InfoCard title="Laboratory Results">
+          <div 
+            className="overflow-x-auto"
+            dangerouslySetInnerHTML={{ __html: caseData.smartDefaults.laboratoryResults }}
+          />
+        </InfoCard>
+      )}
+
+      {/* On-Demand Content Sections */}
+      <div className="space-y-6">
+        <OnDemandSection
+          id="complete-physical-exam"
+          title="Complete Physical Exam"
+          description="Head-to-toe systematic assessment"
+          content={onDemandContent['complete-physical-exam']}
+          onContentGenerated={handleContentGenerated}
+          prompt="Generate a comprehensive head-to-toe physical examination with systematic findings organized by body systems"
+        />
+
+        <OnDemandSection
+          id="laboratory-results"
+          title="Laboratory Results"
+          description="Comprehensive lab panel with reference ranges"
+          content={onDemandContent['laboratory-results']}
+          onContentGenerated={handleContentGenerated}
+          prompt="Generate comprehensive laboratory results in HTML table format with test names, values, reference ranges, and highlighted abnormal values"
+        />
+
+        <OnDemandSection
+          id="imaging-studies"
+          title="Imaging Studies"
+          description="X-rays, CT, MRI with detailed findings"
+          content={onDemandContent['imaging-studies']}
+          onContentGenerated={handleContentGenerated}
+          prompt="Generate imaging studies including X-rays, CT scans, or MRI with detailed radiological findings and clinical significance"
+        />
+
+        <OnDemandSection
+          id="additional-diagnostics"
+          title="Additional Diagnostics"
+          description="EKG, Echo, specialized tests and results"
+          content={onDemandContent['additional-diagnostics']}
+          onContentGenerated={handleContentGenerated}
+          prompt="Generate additional diagnostic tests such as EKG, echocardiogram, or specialized tests with detailed results and interpretations"
+        />
+
+        <OnDemandSection
+          id="trending-data"
+          title="Trending Data"
+          description="How findings change over time"
+          content={onDemandContent['trending-data']}
+          onContentGenerated={handleContentGenerated}
+          prompt="Generate trending data showing how vital signs, lab values, and clinical findings change over the course of the simulation"
+        />
+      </div>
+    </div>
+  );
+};
+
+export default PresentationTab; 

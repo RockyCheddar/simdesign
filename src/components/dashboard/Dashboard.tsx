@@ -29,6 +29,27 @@ const Dashboard: React.FC = () => {
     setTimeout(() => loadCases(), 100); // Small delay to ensure mock data is saved
   }, []);
 
+  // Reload cases when window regains focus (user returns from case creation)
+  useEffect(() => {
+    const handleFocus = () => {
+      loadCases();
+    };
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key?.startsWith('simcase_')) {
+        loadCases();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
   const loadCases = () => {
     setLoading(true);
     try {
@@ -49,9 +70,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleViewCase = (caseId: string) => {
-    // Placeholder for case viewing - will be implemented later
-    toast('Case viewing feature coming soon', { icon: 'ℹ️' });
-    console.log('View case:', caseId);
+    router.push(`/case/${caseId}`);
   };
 
   const handleCreateCase = () => {
@@ -138,6 +157,15 @@ const Dashboard: React.FC = () => {
             
             {/* User Info */}
             <div className="flex items-center space-x-4">
+              <button
+                onClick={loadCases}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Refresh cases"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
               <div className="hidden md:block text-right">
                 <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                 <p className="text-xs text-gray-500">{user?.email}</p>
