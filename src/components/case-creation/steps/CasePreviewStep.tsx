@@ -20,7 +20,7 @@ const CasePreviewStep: React.FC = () => {
     
     // Base complexity from experience level
     switch (learningContext.experienceLevel) {
-      case 'beginner': score += 1; break;
+      case 'novice': score += 1; break;
       case 'intermediate': score += 2; break;
       case 'advanced': score += 3; break;
     }

@@ -1,12 +1,12 @@
 export interface LearningContext {
-  targetLearners: string[];
-  experienceLevel: 'beginner' | 'intermediate' | 'advanced';
-  clinicalDomain: string;
-  duration: number;
-  participantCount: number;
-  title: string;
+  targetLearners?: string;
+  experienceLevel?: 'novice' | 'intermediate' | 'advanced';
+  clinicalDomain?: string;
+  duration?: number;
+  participantCount?: number;
+  title?: string;
   description?: string;
-  learningObjectives: string[];
+  learningObjectives?: string[];
 }
 
 export interface RefinedObjectives {

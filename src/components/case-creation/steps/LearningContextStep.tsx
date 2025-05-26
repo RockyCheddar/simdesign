@@ -51,15 +51,15 @@ const LearningContextStep: React.FC = () => {
         {/* Case Title */}
         <div className="space-y-2">
           <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-            Case Title <span className="text-red-500">*</span>
+            Case Title
           </label>
           <input
             type="text"
             id="title"
             value={learningContext.title || ''}
             onChange={(e) => handleInputChange('title', e.target.value)}
-            placeholder="Enter a descriptive title for your simulation case"
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+            placeholder="e.g., Acute Myocardial Infarction in the Emergency Department"
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 ${
               errors.title ? 'border-red-300' : 'border-gray-300'
             }`}
           />
@@ -79,12 +79,38 @@ const LearningContextStep: React.FC = () => {
             value={learningContext.description || ''}
             onChange={(e) => handleInputChange('description', e.target.value)}
             placeholder="Provide a brief overview of the simulation case"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
           />
         </div>
 
         {/* Target Settings Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Target Learners */}
+          <div className="space-y-2">
+            <label htmlFor="targetLearners" className="block text-sm font-medium text-gray-700">
+              Target Learners <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="targetLearners"
+              value={learningContext.targetLearners || ''}
+              onChange={(e) => handleInputChange('targetLearners', e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${
+                errors.targetLearners ? 'border-red-300' : 'border-gray-300'
+              }`}
+            >
+              <option value="">Select target learners</option>
+              <option value="nursing-students">Nursing Students</option>
+              <option value="medical-students">Medical Students</option>
+              <option value="residents">Residents</option>
+              <option value="practicing-nurses">Practicing Nurses</option>
+              <option value="interdisciplinary-team">Interdisciplinary Team</option>
+              <option value="other">Other</option>
+            </select>
+            {errors.targetLearners && (
+              <p className="text-red-600 text-sm">{errors.targetLearners}</p>
+            )}
+          </div>
+
           {/* Experience Level */}
           <div className="space-y-2">
             <label htmlFor="experienceLevel" className="block text-sm font-medium text-gray-700">
@@ -94,12 +120,12 @@ const LearningContextStep: React.FC = () => {
               id="experienceLevel"
               value={learningContext.experienceLevel || ''}
               onChange={(e) => handleInputChange('experienceLevel', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${
                 errors.experienceLevel ? 'border-red-300' : 'border-gray-300'
               }`}
             >
               <option value="">Select experience level</option>
-              <option value="beginner">Beginner</option>
+              <option value="novice">Novice</option>
               <option value="intermediate">Intermediate</option>
               <option value="advanced">Advanced</option>
             </select>
@@ -113,16 +139,25 @@ const LearningContextStep: React.FC = () => {
             <label htmlFor="clinicalDomain" className="block text-sm font-medium text-gray-700">
               Clinical Domain <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <select
               id="clinicalDomain"
               value={learningContext.clinicalDomain || ''}
               onChange={(e) => handleInputChange('clinicalDomain', e.target.value)}
-              placeholder="e.g., Emergency Medicine, Cardiology, Pediatrics"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${
                 errors.clinicalDomain ? 'border-red-300' : 'border-gray-300'
               }`}
-            />
+            >
+              <option value="">Select clinical domain</option>
+              <option value="emergency-department">Emergency Department</option>
+              <option value="icu">ICU</option>
+              <option value="medical-surgical">Medical-Surgical</option>
+              <option value="operating-room">Operating Room</option>
+              <option value="pediatrics">Pediatrics</option>
+              <option value="obstetrics">Obstetrics</option>
+              <option value="mental-health">Mental Health</option>
+              <option value="community-health">Community Health</option>
+              <option value="other">Other</option>
+            </select>
             {errors.clinicalDomain && (
               <p className="text-red-600 text-sm">{errors.clinicalDomain}</p>
             )}
@@ -131,20 +166,23 @@ const LearningContextStep: React.FC = () => {
           {/* Duration */}
           <div className="space-y-2">
             <label htmlFor="duration" className="block text-sm font-medium text-gray-700">
-              Duration (minutes) <span className="text-red-500">*</span>
+              Duration <span className="text-red-500">*</span>
             </label>
-            <input
-              type="number"
+            <select
               id="duration"
-              min="5"
-              max="240"
               value={learningContext.duration || ''}
               onChange={(e) => handleInputChange('duration', parseInt(e.target.value) || 0)}
-              placeholder="30"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${
                 errors.duration ? 'border-red-300' : 'border-gray-300'
               }`}
-            />
+            >
+              <option value="">Select duration</option>
+              <option value="15">15 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">60 minutes</option>
+              <option value="90">90 minutes</option>
+            </select>
             {errors.duration && (
               <p className="text-red-600 text-sm">{errors.duration}</p>
             )}
@@ -163,7 +201,7 @@ const LearningContextStep: React.FC = () => {
               value={learningContext.participantCount || ''}
               onChange={(e) => handleInputChange('participantCount', parseInt(e.target.value) || 0)}
               placeholder="4"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 ${
                 errors.participantCount ? 'border-red-300' : 'border-gray-300'
               }`}
             />
@@ -200,7 +238,7 @@ const LearningContextStep: React.FC = () => {
                     value={objective}
                     onChange={(e) => updateLearningObjective(index, e.target.value)}
                     placeholder="Describe what learners should be able to do after completing this case"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
                   />
                 </div>
                 <button

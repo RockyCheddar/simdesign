@@ -123,20 +123,20 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
 
       switch (currentStep) {
         case 1: // Learning Context & Objectives
-          if (!learningContext.title?.trim()) {
-            errors.title = 'Title is required';
+          if (!learningContext.targetLearners) {
+            errors.targetLearners = 'Target learners is required';
             isValid = false;
           }
           if (!learningContext.experienceLevel) {
             errors.experienceLevel = 'Experience level is required';
             isValid = false;
           }
-          if (!learningContext.clinicalDomain?.trim()) {
+          if (!learningContext.clinicalDomain) {
             errors.clinicalDomain = 'Clinical domain is required';
             isValid = false;
           }
-          if (!learningContext.duration || learningContext.duration < 5) {
-            errors.duration = 'Duration must be at least 5 minutes';
+          if (!learningContext.duration || learningContext.duration < 15) {
+            errors.duration = 'Duration is required';
             isValid = false;
           }
           if (!learningContext.participantCount || learningContext.participantCount < 1) {
