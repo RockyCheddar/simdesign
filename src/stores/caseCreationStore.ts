@@ -252,7 +252,7 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Complete generation
-        set((state) => ({
+        set(() => ({
           generatedCase: result.data,
           generationProgress: { 
             status: 'completed', 
@@ -276,15 +276,30 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
           console.log('Saved case details:', savedCase);
           
           // Store the saved case ID for navigation
+          console.log('Setting savedCaseId in store:', savedCase.id);
           set(state => ({
             ...state,
             savedCaseId: savedCase.id
           }));
+          console.log('Store updated with savedCaseId:', savedCase.id);
           
           toast.success(`Case "${savedCase.title}" saved to dashboard!`, {
             duration: 4000,
             icon: '💾'
           });
+
+          // Trigger a storage event to notify the dashboard to refresh
+          window.dispatchEvent(new StorageEvent('storage', {
+            key: 'simcase_index',
+            newValue: localStorage.getItem('simcase_index'),
+            storageArea: localStorage
+          }));
+          
+          // Also dispatch a custom event as a fallback
+          window.dispatchEvent(new CustomEvent('caseAdded', {
+            detail: { caseId: savedCase.id }
+          }));
+          
         } catch (saveError) {
           console.error('Failed to save case to dashboard:', saveError);
           console.error('Error details:', saveError);

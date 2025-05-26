@@ -22,13 +22,40 @@ const CaseCreationWizard: React.FC = () => {
     router.push('/');
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     // This will be called when the case generation is complete
-    // The case is already displayed in the CaseGenerationStep component
-    // We don't need to redirect anywhere - just show a success message
-    toast.success('Case created and saved successfully!');
-    // The user can now view the case details on the current page
-    // or navigate back to dashboard manually
+    // Navigate to the case details page if we have a saved case ID
+    const state = useCaseCreationStore.getState();
+    const { savedCaseId } = state;
+    
+    console.log('handleComplete called');
+    console.log('Full store state:', state);
+    console.log('savedCaseId:', savedCaseId);
+    
+    if (savedCaseId) {
+      console.log('Navigating to case:', savedCaseId);
+      toast.success('Case created and saved successfully!');
+      router.push(`/case/${savedCaseId}`);
+    } else {
+      console.log('No savedCaseId found, checking localStorage...');
+      // Fallback: try to find the latest case from localStorage
+      const { loadAllCases } = await import('@/utils/caseStorage');
+      const cases = loadAllCases();
+      console.log('Cases found in localStorage:', cases.length);
+      if (cases.length > 0) {
+        console.log('All cases:', cases.map(c => ({ id: c.id, title: c.title, createdAt: c.createdAt })));
+      }
+      const latestCase = cases[0]; // Most recent case
+      if (latestCase) {
+        console.log('Using latest case:', latestCase.id, latestCase.title);
+        toast.success('Case created and saved successfully!');
+        router.push(`/case/${latestCase.id}`);
+      } else {
+        console.log('No cases found, redirecting to dashboard');
+        toast.success('Case created successfully!');
+        router.push('/');
+      }
+    }
   };
 
   const renderCurrentStep = () => {

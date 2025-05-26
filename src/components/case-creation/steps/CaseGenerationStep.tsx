@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   useGenerationProgress, 
   useCaseCreationStore, 
@@ -13,6 +14,7 @@ import { determineSmartDefaults } from '@/lib/smartDefaults';
 import CaseDisplayTabs from '@/components/case-display/CaseDisplayTabs';
 
 const CaseGenerationStep: React.FC = () => {
+  const router = useRouter();
   const generationProgress = useGenerationProgress();
   const generatedCase = useGeneratedCase();
   const learningContext = useLearningContext();
@@ -310,18 +312,18 @@ const CaseGenerationStep: React.FC = () => {
             {/* Action Buttons */}
             <div className="flex justify-center space-x-4 mt-8 pt-6 border-t border-gray-200">
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (savedCaseId) {
-                    window.location.href = `/case/${savedCaseId}`;
+                    router.push(`/case/${savedCaseId}`);
                   } else {
                     // Fallback: try to find the latest case from localStorage
-                    const { loadAllCases } = require('@/utils/caseStorage');
+                    const { loadAllCases } = await import('@/utils/caseStorage');
                     const cases = loadAllCases();
                     const latestCase = cases[0]; // Most recent case
                     if (latestCase) {
-                      window.location.href = `/case/${latestCase.id}`;
+                      router.push(`/case/${latestCase.id}`);
                     } else {
-                      window.location.href = '/';
+                      router.push('/');
                     }
                   }
                 }}
@@ -335,7 +337,7 @@ const CaseGenerationStep: React.FC = () => {
               </button>
 
               <button
-                onClick={() => window.location.href = '/'}
+                onClick={() => router.push('/')}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -53,6 +53,14 @@ export const saveCase = (simulationCase: SimulationCase): boolean => {
     const caseKey = `${CASE_STORAGE_PREFIX}${simulationCase.id}`;
     localStorage.setItem(caseKey, JSON.stringify(simulationCase));
     updateCaseIndex(simulationCase.id);
+    
+    // Dispatch custom event to notify components
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('caseAdded', {
+        detail: { caseId: simulationCase.id }
+      }));
+    }
+    
     return true;
   } catch (error) {
     console.error('Error saving case:', error);

@@ -1,8 +1,7 @@
 import { 
   GeneratedCaseData, 
   LearningContext, 
-  ParameterAnswers, 
-  SmartDefaults 
+  ParameterAnswers 
 } from '@/types/caseCreation';
 import { determineSmartDefaults } from '@/lib/smartDefaults';
 

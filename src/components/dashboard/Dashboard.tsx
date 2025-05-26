@@ -37,16 +37,24 @@ const Dashboard: React.FC = () => {
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key?.startsWith('simcase_')) {
+        console.log('Storage change detected, refreshing cases...');
         loadCases();
       }
     };
 
+    const handleCaseAdded = (e: CustomEvent) => {
+      console.log('Case added event detected, refreshing cases...', e.detail);
+      loadCases();
+    };
+
     window.addEventListener('focus', handleFocus);
     window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('caseAdded', handleCaseAdded as EventListener);
     
     return () => {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('caseAdded', handleCaseAdded as EventListener);
     };
   }, []);
 

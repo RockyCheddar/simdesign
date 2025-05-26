@@ -1,4 +1,4 @@
-import { GeneratedCaseData } from '@/types/caseCreation';
+import { GeneratedCaseData, LearningContext } from '@/types/caseCreation';
 import { SimulationCase } from '@/types';
 import { saveCase } from './caseStorage';
 import { generateId } from './helpers';
@@ -8,10 +8,15 @@ import { generateId } from './helpers';
  */
 export const convertAndSaveGeneratedCase = (
   generatedCase: GeneratedCaseData,
-  learningContext: any
+  learningContext: Partial<LearningContext>
 ): SimulationCase => {
+  console.log('Converting generated case to SimulationCase format...');
+  console.log('Generated case data:', generatedCase);
+  console.log('Learning context:', learningContext);
+  
   // Create a unique ID for the case
   const caseId = generateId();
+  console.log('Generated case ID:', caseId);
   
   // Convert to SimulationCase format
   const simulationCase: SimulationCase = {
@@ -20,15 +25,15 @@ export const convertAndSaveGeneratedCase = (
     description: generatedCase.overview?.caseSummary || 'AI-generated simulation case',
     
     patientInfo: {
-      name: generatedCase.patient?.demographics?.fullName || 'Patient Name',
-      age: generatedCase.patient?.demographics?.age || 0,
-      gender: generatedCase.patient?.demographics?.gender || 'unknown',
-      weight: generatedCase.patient?.demographics?.weight || 0,
-      height: generatedCase.patient?.demographics?.height || 0,
+      name: generatedCase.patient?.demographics?.fullName || generatedCase.overview?.patientBasics?.name || 'Patient Name',
+      age: generatedCase.patient?.demographics?.age || generatedCase.overview?.patientBasics?.age || 0,
+      gender: generatedCase.patient?.demographics?.gender || generatedCase.overview?.patientBasics?.gender || 'unknown',
+      weight: generatedCase.patient?.demographics?.weight || 70,
+      height: generatedCase.patient?.demographics?.height || 170,
       allergies: [], // Will be populated from generated data if available
       medications: generatedCase.patient?.currentMedications?.map(med => med.name) || [],
       medicalHistory: [], // Will be populated from generated data if available
-      chiefComplaint: generatedCase.patient?.chiefComplaint || ''
+      chiefComplaint: generatedCase.patient?.chiefComplaint || 'Chief complaint not specified'
     },
     
     scenario: {
@@ -81,12 +86,17 @@ export const convertAndSaveGeneratedCase = (
     isPublic: false
   };
   
+  console.log('Converted SimulationCase:', simulationCase);
+  
   // Save to localStorage
   const saved = saveCase(simulationCase);
+  console.log('Case save result:', saved);
+  
   if (!saved) {
     throw new Error('Failed to save case to storage');
   }
   
+  console.log('Case successfully saved to localStorage with ID:', simulationCase.id);
   return simulationCase;
 };
 
@@ -97,7 +107,6 @@ export const generateCaseTitle = (generatedCase: GeneratedCaseData): string => {
   const patientAge = generatedCase.patient?.demographics?.age;
   const patientGender = generatedCase.patient?.demographics?.gender;
   const chiefComplaint = generatedCase.patient?.chiefComplaint;
-  const location = generatedCase.overview?.clinicalSetting?.location;
   
   if (patientAge && patientGender && chiefComplaint) {
     return `${patientAge}yo ${patientGender} with ${chiefComplaint}`;
@@ -111,7 +120,7 @@ export const generateCaseTitle = (generatedCase: GeneratedCaseData): string => {
  */
 export const extractCaseTags = (
   generatedCase: GeneratedCaseData, 
-  learningContext: any
+  learningContext: Partial<LearningContext>
 ): string[] => {
   const tags: string[] = [];
   
@@ -121,8 +130,9 @@ export const extractCaseTags = (
   }
   
   // Add location
-  if (generatedCase.overview?.clinicalSetting?.location) {
-    tags.push(generatedCase.overview.clinicalSetting.location);
+  const location = generatedCase.overview?.clinicalSetting?.location;
+  if (location) {
+    tags.push(location);
   }
   
   // Add acuity level
