@@ -10,24 +10,44 @@ export const convertAndSaveGeneratedCase = (
   generatedCase: GeneratedCaseData,
   learningContext: Partial<LearningContext>
 ): SimulationCase => {
+  console.log('=== CASE CONVERSION DEBUG ===');
   console.log('Converting generated case to SimulationCase format...');
-  console.log('Generated case data:', generatedCase);
+  console.log('Generated case data keys:', Object.keys(generatedCase || {}));
   console.log('Learning context:', learningContext);
+  
+  // Validate input data
+  if (!generatedCase) {
+    throw new Error('Generated case data is null or undefined');
+  }
+  
+  if (!generatedCase.overview) {
+    throw new Error('Generated case missing overview section');
+  }
+  
+  if (!generatedCase.overview.caseTitle) {
+    throw new Error('Generated case missing case title');
+  }
   
   // Create a unique ID for the case
   const caseId = generateId();
   console.log('Generated case ID:', caseId);
   
-  // Convert to SimulationCase format
+  // Convert to SimulationCase format with better error handling
   const simulationCase: SimulationCase = {
     id: caseId,
     title: generatedCase.overview?.caseTitle || 'Generated Case',
     description: generatedCase.overview?.caseSummary || 'AI-generated simulation case',
     
     patientInfo: {
-      name: generatedCase.patient?.demographics?.fullName || generatedCase.overview?.patientBasics?.name || 'Patient Name',
-      age: generatedCase.patient?.demographics?.age || generatedCase.overview?.patientBasics?.age || 0,
-      gender: generatedCase.patient?.demographics?.gender || generatedCase.overview?.patientBasics?.gender || 'unknown',
+      name: generatedCase.patient?.demographics?.fullName || 
+            generatedCase.overview?.patientBasics?.name || 
+            'Patient Name',
+      age: generatedCase.patient?.demographics?.age || 
+           generatedCase.overview?.patientBasics?.age || 
+           0,
+      gender: generatedCase.patient?.demographics?.gender || 
+              generatedCase.overview?.patientBasics?.gender || 
+              'unknown',
       weight: generatedCase.patient?.demographics?.weight || 70,
       height: generatedCase.patient?.demographics?.height || 170,
       allergies: [], // Will be populated from generated data if available
@@ -75,7 +95,7 @@ export const convertAndSaveGeneratedCase = (
     difficulty: learningContext?.experienceLevel === 'novice' ? 'beginner' :
                learningContext?.experienceLevel === 'advanced' ? 'advanced' : 'intermediate',
     duration: learningContext?.duration || 60,
-    createdBy: 'ai-generated',
+    createdBy: 'ai-generated', // This is important - NOT 'demo-user'
     createdAt: new Date(),
     updatedAt: new Date(),
     tags: [
@@ -86,9 +106,20 @@ export const convertAndSaveGeneratedCase = (
     isPublic: false
   };
   
-  console.log('Converted SimulationCase:', simulationCase);
+  console.log('Converted SimulationCase:', {
+    id: simulationCase.id,
+    title: simulationCase.title,
+    createdBy: simulationCase.createdBy,
+    createdAt: simulationCase.createdAt
+  });
+  
+  // Validate the converted case
+  if (!simulationCase.id || !simulationCase.title) {
+    throw new Error('Case conversion failed: missing required fields');
+  }
   
   // Save to localStorage
+  console.log('Attempting to save case to localStorage...');
   const saved = saveCase(simulationCase);
   console.log('Case save result:', saved);
   
@@ -97,6 +128,7 @@ export const convertAndSaveGeneratedCase = (
   }
   
   console.log('Case successfully saved to localStorage with ID:', simulationCase.id);
+  console.log('=== CASE CONVERSION COMPLETE ===');
   return simulationCase;
 };
 

@@ -54,6 +54,7 @@ const initialState: CaseCreationFormData = {
     currentPhase: '',
     progress: 0
   },
+  generatedCase: undefined,
   isValid: false,
   errors: {}
 };
@@ -71,7 +72,24 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
     nextStep: () => {
       const { currentStep, validateCurrentStep } = get();
       if (validateCurrentStep() && currentStep < FORM_STEPS.length) {
-        set({ currentStep: currentStep + 1 });
+        const newStep = currentStep + 1;
+        
+        // Reset generation progress when navigating to step 5 (Case Generation)
+        if (newStep === 5) {
+          console.log('NextStep: Moving to Case Generation step - resetting generation progress to idle');
+          set({ 
+            currentStep: newStep,
+            generationProgress: {
+              status: 'idle',
+              currentPhase: '',
+              progress: 0
+            },
+            generatedCase: undefined,
+            savedCaseId: null
+          });
+        } else {
+          set({ currentStep: newStep });
+        }
       }
     },
 
@@ -84,7 +102,24 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
 
     goToStep: (step: number) => {
       if (step >= 1 && step <= FORM_STEPS.length) {
-        set({ currentStep: step });
+        console.log('=== NAVIGATING TO STEP ===', step);
+        
+        // Reset generation progress when navigating to step 5 (Case Generation)
+        if (step === 5) {
+          console.log('Navigating to Case Generation step - resetting generation progress to idle');
+          set({ 
+            currentStep: step,
+            generationProgress: {
+              status: 'idle',
+              currentPhase: '',
+              progress: 0
+            },
+            generatedCase: undefined,
+            savedCaseId: null
+          });
+        } else {
+          set({ currentStep: step });
+        }
       }
     },
 
@@ -185,9 +220,16 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
     },
 
     generateComprehensiveCase: async () => {
+      console.log('=== GENERATE COMPREHENSIVE CASE CALLED ===');
       const { learningContext, refinedObjectives, parameterAnswers } = get();
       
+      console.log('Current state data:');
+      console.log('- learningContext:', learningContext);
+      console.log('- refinedObjectives:', refinedObjectives);
+      console.log('- parameterAnswers:', parameterAnswers);
+      
       try {
+        console.log('Starting case generation process...');
         // Reset and start generation
         set(() => ({
           generationProgress: { 
@@ -197,6 +239,8 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
             estimatedTimeRemaining: 90
           }
         }));
+
+        console.log('Generation progress set to generating...');
 
         // Phase 1: Analyzing context
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -268,27 +312,59 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
           const { toast } = await import('react-hot-toast');
           const { learningContext } = get();
           
+          console.log('=== CASE SAVING DEBUG ===');
           console.log('Attempting to save case with data:', result.data);
           console.log('Learning context:', learningContext);
           
+          // Validate that we have the required data before attempting to save
+          if (!result.data || !result.data.overview) {
+            throw new Error('Invalid case data: missing overview section');
+          }
+          
+          if (!result.data.overview.caseTitle) {
+            throw new Error('Invalid case data: missing case title');
+          }
+          
           const savedCase = convertAndSaveGeneratedCase(result.data, learningContext);
           console.log('Case saved to dashboard successfully:', savedCase.id);
-          console.log('Saved case details:', savedCase);
+          console.log('Saved case details:', {
+            id: savedCase.id,
+            title: savedCase.title,
+            createdAt: savedCase.createdAt,
+            createdBy: savedCase.createdBy
+          });
           
-          // Store the saved case ID for navigation
+          // Verify the case was actually saved by trying to load it
+          const { loadCase } = await import('@/utils/caseStorage');
+          const verifyCase = loadCase(savedCase.id);
+          if (!verifyCase) {
+            throw new Error(`Case verification failed: could not load case ${savedCase.id} after saving`);
+          }
+          console.log('Case verification successful:', verifyCase.id);
+          
+          // Store the saved case ID for navigation - this is critical!
           console.log('Setting savedCaseId in store:', savedCase.id);
           set(state => ({
             ...state,
             savedCaseId: savedCase.id
           }));
-          console.log('Store updated with savedCaseId:', savedCase.id);
+          
+          // Verify the store was updated
+          const updatedState = get();
+          console.log('Store updated with savedCaseId:', updatedState.savedCaseId);
+          
+          if (updatedState.savedCaseId !== savedCase.id) {
+            console.error('ERROR: savedCaseId was not properly set in store!');
+            throw new Error('Failed to update store with saved case ID');
+          }
           
           toast.success(`Case "${savedCase.title}" saved to dashboard!`, {
             duration: 4000,
             icon: '💾'
           });
 
-          // Trigger a storage event to notify the dashboard to refresh
+          // Trigger storage events to notify the dashboard to refresh
+          console.log('Dispatching storage events...');
           window.dispatchEvent(new StorageEvent('storage', {
             key: 'simcase_index',
             newValue: localStorage.getItem('simcase_index'),
@@ -300,13 +376,26 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
             detail: { caseId: savedCase.id }
           }));
           
+          console.log('=== CASE SAVING COMPLETE ===');
+          
         } catch (saveError) {
+          console.error('=== CASE SAVING ERROR ===');
           console.error('Failed to save case to dashboard:', saveError);
           console.error('Error details:', saveError);
+          console.error('Stack trace:', saveError instanceof Error ? saveError.stack : 'No stack trace');
+          
           const { toast } = await import('react-hot-toast');
           toast.error(`Failed to save case: ${saveError instanceof Error ? saveError.message : 'Unknown error'}`, {
             duration: 6000
           });
+          
+          // Set an error state but don't fail the entire generation
+          set(state => ({
+            generationProgress: { 
+              ...state.generationProgress, 
+              error: `Case generated but save failed: ${saveError instanceof Error ? saveError.message : 'Unknown error'}`
+            }
+          }));
         }
 
       } catch (error) {

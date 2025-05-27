@@ -23,13 +23,22 @@ const CaseGenerationStep: React.FC = () => {
   const { generateComprehensiveCase, updateGenerationProgress } = useCaseCreationStore();
 
   const startGeneration = React.useCallback(async () => {
+    console.log('=== STARTING GENERATION ===');
+    console.log('About to call generateComprehensiveCase...');
     await generateComprehensiveCase();
   }, [generateComprehensiveCase]);
 
   // Auto-start generation when this step is reached
   React.useEffect(() => {
+    console.log('=== CASE GENERATION STEP MOUNTED ===');
+    console.log('Current generation status:', generationProgress.status);
+    console.log('Generation progress object:', generationProgress);
+    
     if (generationProgress.status === 'idle') {
+      console.log('✅ Status is idle, starting generation...');
       startGeneration();
+    } else {
+      console.log('❌ Status is not idle, not starting generation. Status:', generationProgress.status);
     }
   }, [generationProgress.status, startGeneration]);
 
@@ -413,6 +422,42 @@ const CaseGenerationStep: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span>Generate Comprehensive Case</span>
+            </button>
+          </div>
+        )}
+
+        {/* Wrong Status State - Manual Reset Option */}
+        {generationProgress.status === 'completed' && generationProgress.currentPhase === 'Questions generated successfully' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <div className="flex items-center mb-4">
+              <svg className="w-6 h-6 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <h3 className="text-lg font-semibold text-yellow-800">Generation Status Issue Detected</h3>
+            </div>
+            <p className="text-yellow-700 mb-4">
+              The generation status is stuck from a previous step. Click the button below to reset and start case generation.
+            </p>
+            <button
+              onClick={async () => {
+                console.log('Manual reset triggered');
+                updateGenerationProgress({
+                  status: 'idle',
+                  currentPhase: '',
+                  progress: 0,
+                  error: undefined
+                });
+                // Small delay to ensure state is updated
+                setTimeout(() => {
+                  startGeneration();
+                }, 100);
+              }}
+              className="px-6 py-3 bg-yellow-600 text-white rounded-lg font-medium hover:bg-yellow-700 transition-colors flex items-center space-x-2 mx-auto"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Reset & Generate Case</span>
             </button>
           </div>
         )}

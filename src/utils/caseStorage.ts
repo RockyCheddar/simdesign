@@ -50,20 +50,55 @@ const removeCaseFromIndex = (caseId: string): void => {
  */
 export const saveCase = (simulationCase: SimulationCase): boolean => {
   try {
+    console.log('=== CASE STORAGE DEBUG ===');
+    console.log('Saving case to localStorage:', {
+      id: simulationCase.id,
+      title: simulationCase.title,
+      createdBy: simulationCase.createdBy
+    });
+    
     const caseKey = `${CASE_STORAGE_PREFIX}${simulationCase.id}`;
-    localStorage.setItem(caseKey, JSON.stringify(simulationCase));
+    console.log('Storage key:', caseKey);
+    
+    // Serialize and save the case
+    const serializedCase = JSON.stringify(simulationCase);
+    localStorage.setItem(caseKey, serializedCase);
+    console.log('Case data saved to localStorage');
+    
+    // Update the index
     updateCaseIndex(simulationCase.id);
+    console.log('Case index updated');
+    
+    // Verify the save by trying to load it back
+    const savedData = localStorage.getItem(caseKey);
+    if (!savedData) {
+      throw new Error('Case was not saved - localStorage.getItem returned null');
+    }
+    
+    try {
+      const parsedCase = JSON.parse(savedData);
+      if (parsedCase.id !== simulationCase.id) {
+        throw new Error('Case ID mismatch after save');
+      }
+      console.log('Case save verification successful');
+    } catch (parseError) {
+      throw new Error('Case save verification failed - could not parse saved data');
+    }
     
     // Dispatch custom event to notify components
     if (typeof window !== 'undefined') {
+      console.log('Dispatching caseAdded event');
       window.dispatchEvent(new CustomEvent('caseAdded', {
         detail: { caseId: simulationCase.id }
       }));
     }
     
+    console.log('=== CASE STORAGE COMPLETE ===');
     return true;
   } catch (error) {
+    console.error('=== CASE STORAGE ERROR ===');
     console.error('Error saving case:', error);
+    console.error('Case data:', simulationCase);
     return false;
   }
 };
@@ -96,18 +131,36 @@ export const loadCase = (caseId: string): SimulationCase | null => {
  */
 export const loadAllCases = (): SimulationCase[] => {
   try {
+    console.log('=== LOADING ALL CASES ===');
     const caseIds = getCaseIndex();
+    console.log('Case IDs from index:', caseIds);
     const cases: SimulationCase[] = [];
     
     caseIds.forEach(caseId => {
       const simulationCase = loadCase(caseId);
       if (simulationCase) {
         cases.push(simulationCase);
+        console.log('Loaded case:', {
+          id: simulationCase.id,
+          title: simulationCase.title,
+          createdBy: simulationCase.createdBy,
+          createdAt: simulationCase.createdAt
+        });
+      } else {
+        console.warn('Failed to load case with ID:', caseId);
       }
     });
     
     // Sort by creation date (newest first)
-    return cases.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    const sortedCases = cases.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    console.log('Total cases loaded:', sortedCases.length);
+    console.log('Cases by type:', {
+      userCreated: sortedCases.filter(c => c.createdBy === 'ai-generated').length,
+      demo: sortedCases.filter(c => c.createdBy === 'demo-user').length,
+      other: sortedCases.filter(c => c.createdBy !== 'ai-generated' && c.createdBy !== 'demo-user').length
+    });
+    
+    return sortedCases;
   } catch (error) {
     console.error('Error loading all cases:', error);
     return [];

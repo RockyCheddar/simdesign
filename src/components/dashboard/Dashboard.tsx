@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { SimulationCase } from '@/types';
 import { loadAllCases, getStorageStats } from '@/utils/caseStorage';
 import { initializeMockData } from '@/utils/mockData';
+import { debugCaseCreation } from '@/utils/debugCaseCreation';
 import CaseCard from './CaseCard';
 import EmptyState from './EmptyState';
 import UserMenu from '../auth/UserMenu';
@@ -24,9 +25,26 @@ const Dashboard: React.FC = () => {
   // Load cases on component mount
   useEffect(() => {
     loadCases();
-    // Initialize mock data if needed (for demo purposes)
-    initializeMockData();
-    setTimeout(() => loadCases(), 100); // Small delay to ensure mock data is saved
+    
+    // Initialize mock data only if absolutely no cases exist (including user-created ones)
+    // This prevents demo cases from interfering with the case creation flow
+    const existingCases = loadAllCases();
+    if (existingCases.length === 0) {
+      console.log('No cases found, initializing demo data...');
+      initializeMockData();
+      setTimeout(() => {
+        console.log('Reloading cases after demo data initialization...');
+        loadCases();
+      }, 100); // Small delay to ensure mock data is saved
+    } else {
+      console.log('Existing cases found:', existingCases.length, 'skipping demo data initialization');
+    }
+    
+    // Make debug utility available in browser console
+    if (typeof window !== 'undefined') {
+      (window as any).debugCaseCreation = debugCaseCreation;
+      console.log('Debug utility available: call debugCaseCreation() in console');
+    }
   }, []);
 
   // Reload cases when window regains focus (user returns from case creation)

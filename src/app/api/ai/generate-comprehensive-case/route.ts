@@ -51,15 +51,59 @@ const generateComprehensiveCase = async (
       };
     }
 
-    // Parse the JSON response
+    // Parse the JSON response - handle markdown code blocks
     let caseData: GeneratedCaseData;
     try {
-      caseData = JSON.parse(response.content[0].text);
+      let responseText = response.content[0].text;
+      
+      console.log('Raw Claude response (first 200 chars):', responseText.substring(0, 200));
+      console.log('Raw Claude response (last 200 chars):', responseText.substring(responseText.length - 200));
+      
+      // More robust markdown code block removal
+      if (responseText.includes('```')) {
+        // Find the first occurrence of ```json or ``` and remove everything before it
+        const jsonStart = responseText.indexOf('```json');
+        const codeStart = responseText.indexOf('```');
+        
+        if (jsonStart !== -1) {
+          responseText = responseText.substring(jsonStart + 7); // Remove ```json
+        } else if (codeStart !== -1) {
+          responseText = responseText.substring(codeStart + 3); // Remove ```
+        }
+        
+        // Find the last occurrence of ``` and remove everything after it
+        const lastCodeBlock = responseText.lastIndexOf('```');
+        if (lastCodeBlock !== -1) {
+          responseText = responseText.substring(0, lastCodeBlock);
+        }
+      }
+      
+      // Clean up any extra whitespace and newlines
+      responseText = responseText.trim();
+      
+      // Remove any leading/trailing text that's not JSON
+      const firstBrace = responseText.indexOf('{');
+      const lastBrace = responseText.lastIndexOf('}');
+      
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        responseText = responseText.substring(firstBrace, lastBrace + 1);
+      }
+      
+      console.log('Cleaned response text (first 300 chars):', responseText.substring(0, 300));
+      console.log('Cleaned response text (last 100 chars):', responseText.substring(responseText.length - 100));
+      
+      caseData = JSON.parse(responseText);
+      console.log('✅ JSON parsing successful');
+      
     } catch (parseError) {
+      console.error('❌ JSON parsing failed');
+      console.error('Parse error:', parseError);
+      console.error('Full raw response:', response.content[0].text);
+      
       return {
         success: false,
         error: 'Failed to parse AI response',
-        details: parseError instanceof Error ? parseError.message : 'JSON parsing failed'
+        details: `JSON parsing failed: ${parseError instanceof Error ? parseError.message : 'Unknown error'}. Response may be malformed.`
       };
     }
 

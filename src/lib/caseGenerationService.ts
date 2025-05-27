@@ -49,7 +49,9 @@ ${includeExpanded ? `- Expanded content for advanced learners: ${smartDefaults.e
 ${includeAcuteCare ? `- Acute care content: ${smartDefaults.acuteCare.join(', ')}` : ''}
 ${includeProcedural ? `- Procedural content: ${smartDefaults.procedural.join(', ')}` : ''}
 
-**GENERATE EXACTLY THIS JSON STRUCTURE:**
+**CRITICAL: RESPOND WITH ONLY VALID JSON - NO MARKDOWN, NO EXPLANATIONS, NO CODE BLOCKS**
+
+Generate exactly this JSON structure (and nothing else):
 
 {
   "overview": {

@@ -12,6 +12,9 @@ import CasePreviewStep from './steps/CasePreviewStep';
 import CaseGenerationStep from './steps/CaseGenerationStep';
 import { toast } from 'react-hot-toast';
 
+// TEST: Simple console log to verify console is working
+console.log('🚀 CaseCreationWizard component loaded - Console is working!');
+
 const CaseCreationWizard: React.FC = () => {
   const router = useRouter();
   const currentStep = useCurrentStep();
@@ -26,36 +29,73 @@ const CaseCreationWizard: React.FC = () => {
     // This will be called when the case generation is complete
     // Navigate to the case details page if we have a saved case ID
     const state = useCaseCreationStore.getState();
-    const { savedCaseId } = state;
+    const { savedCaseId, generatedCase } = state;
     
+    console.log('=== NAVIGATION DEBUG ===');
     console.log('handleComplete called');
-    console.log('Full store state:', state);
+    console.log('Full store state keys:', Object.keys(state));
     console.log('savedCaseId:', savedCaseId);
+    console.log('generatedCase exists:', !!generatedCase);
+    console.log('generatedCase title:', generatedCase?.overview?.caseTitle);
     
     if (savedCaseId) {
-      console.log('Navigating to case:', savedCaseId);
-      toast.success('Case created and saved successfully!');
-      router.push(`/case/${savedCaseId}`);
-    } else {
-      console.log('No savedCaseId found, checking localStorage...');
-      // Fallback: try to find the latest case from localStorage
-      const { loadAllCases } = await import('@/utils/caseStorage');
-      const cases = loadAllCases();
-      console.log('Cases found in localStorage:', cases.length);
-      if (cases.length > 0) {
-        console.log('All cases:', cases.map(c => ({ id: c.id, title: c.title, createdAt: c.createdAt })));
-      }
-      const latestCase = cases[0]; // Most recent case
-      if (latestCase) {
-        console.log('Using latest case:', latestCase.id, latestCase.title);
+      console.log('✅ Using savedCaseId for navigation:', savedCaseId);
+      
+      // Verify the case exists before navigating
+      const { loadCase } = await import('@/utils/caseStorage');
+      const verifyCase = loadCase(savedCaseId);
+      
+      if (verifyCase) {
+        console.log('✅ Case verified, navigating to:', savedCaseId);
+        console.log('Case details:', { id: verifyCase.id, title: verifyCase.title });
         toast.success('Case created and saved successfully!');
-        router.push(`/case/${latestCase.id}`);
+        router.push(`/case/${savedCaseId}`);
+        return;
       } else {
-        console.log('No cases found, redirecting to dashboard');
-        toast.success('Case created successfully!');
-        router.push('/');
+        console.error('❌ Case verification failed for savedCaseId:', savedCaseId);
+        toast.error('Case was created but could not be loaded. Please check the dashboard.');
       }
+    } else {
+      console.log('❌ No savedCaseId found, checking localStorage...');
     }
+    
+    // Fallback: try to find the latest case from localStorage
+    const { loadAllCases } = await import('@/utils/caseStorage');
+    const cases = loadAllCases();
+    console.log('Cases found in localStorage:', cases.length);
+    
+    if (cases.length > 0) {
+      console.log('All cases:', cases.map(c => ({ 
+        id: c.id, 
+        title: c.title, 
+        createdAt: c.createdAt,
+        createdBy: c.createdBy,
+        isDemo: c.createdBy === 'demo-user'
+      })));
+      
+      // Filter out demo cases and find the most recent user-created case
+      const userCases = cases.filter(c => c.createdBy !== 'demo-user');
+      console.log('User-created cases:', userCases.length);
+      
+      if (userCases.length > 0) {
+        const latestUserCase = userCases[0]; // Most recent user case
+        console.log('✅ Using latest user case:', latestUserCase.id, latestUserCase.title);
+        toast.success('Case created and saved successfully!');
+        router.push(`/case/${latestUserCase.id}`);
+        return;
+      }
+      
+      // If no user cases, use the most recent case (even if demo)
+      const latestCase = cases[0];
+      console.log('⚠️ No user cases found, using latest case (might be demo):', latestCase.id, latestCase.title);
+      toast.success('Case created and saved successfully!');
+      router.push(`/case/${latestCase.id}`);
+      return;
+    }
+    
+    console.log('❌ No cases found at all, redirecting to dashboard');
+    toast.success('Case created successfully!');
+    router.push('/');
   };
 
   const renderCurrentStep = () => {
