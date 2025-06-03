@@ -40,6 +40,7 @@ export interface SimulationCase {
   updatedAt: Date;
   tags: string[];
   isPublic: boolean;
+  originalGeneratedData?: import('@/types/caseCreation').GeneratedCaseData; // Preserve full AI-generated data
 }
 
 export interface PatientInfo {

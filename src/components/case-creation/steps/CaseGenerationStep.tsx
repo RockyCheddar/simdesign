@@ -11,7 +11,6 @@ import {
   useSavedCaseId
 } from '@/stores/caseCreationStore';
 import { determineSmartDefaults } from '@/lib/smartDefaults';
-import CaseDisplayTabs from '@/components/case-display/CaseDisplayTabs';
 
 const CaseGenerationStep: React.FC = () => {
   const router = useRouter();
@@ -20,7 +19,7 @@ const CaseGenerationStep: React.FC = () => {
   const learningContext = useLearningContext();
   const parameterAnswers = useParameterAnswers();
   const savedCaseId = useSavedCaseId();
-  const { generateComprehensiveCase, updateGenerationProgress } = useCaseCreationStore();
+  const { generateComprehensiveCase, updateGenerationProgress, resetForm } = useCaseCreationStore();
 
   const startGeneration = React.useCallback(async () => {
     console.log('=== STARTING GENERATION ===');
@@ -270,109 +269,122 @@ const CaseGenerationStep: React.FC = () => {
           </div>
         )}
 
-        {/* Success State - Comprehensive Case Display */}
+        {/* Success State - Clean Success Message */}
         {generationProgress.status === 'completed' && generatedCase && (
           <div className="space-y-6">
             {/* Success Banner */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <div className="flex items-center justify-center space-x-3 mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
+              <div className="flex items-center justify-center space-x-3 mb-6">
+                <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <h3 className="text-xl font-bold text-green-800">
-                  Case Generated Successfully!
-                </h3>
               </div>
-              <p className="text-green-700 text-center mb-4">
-                Your comprehensive simulation case is ready with all components and smart defaults applied.
+              
+              <h3 className="text-2xl font-bold text-green-800 mb-4">
+                🎉 Case Generated Successfully!
+              </h3>
+              
+              <p className="text-green-700 text-lg mb-6">
+                Your comprehensive simulation case <strong>"{generatedCase.overview?.caseTitle}"</strong> is ready!
               </p>
               
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div className="bg-white rounded-lg p-3">
-                  <div className="text-2xl font-bold text-green-600">6</div>
-                  <div className="text-sm text-gray-600">Sections</div>
-                </div>
-                <div className="bg-white rounded-lg p-3">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {Object.keys(generatedCase.smartDefaults || {}).length}
+              {/* Quick Summary */}
+              <div className="bg-white rounded-lg p-6 mb-6 max-w-2xl mx-auto">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div className="border-r border-gray-200 last:border-r-0">
+                    <div className="text-2xl font-bold text-blue-600">6</div>
+                    <div className="text-sm text-gray-600">Sections</div>
                   </div>
-                  <div className="text-sm text-gray-600">Smart Defaults</div>
-                </div>
-                <div className="bg-white rounded-lg p-3">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {generatedCase.simulation?.learningObjectives?.length || 0}
+                  <div className="border-r border-gray-200 last:border-r-0">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {generatedCase.simulation?.learningObjectives?.length || 0}
+                    </div>
+                    <div className="text-sm text-gray-600">Objectives</div>
                   </div>
-                  <div className="text-sm text-gray-600">Learning Objectives</div>
-                </div>
-                <div className="bg-white rounded-lg p-3">
-                  <div className="text-2xl font-bold text-orange-600">∞</div>
-                  <div className="text-sm text-gray-600">On-Demand Content</div>
+                  <div className="border-r border-gray-200 last:border-r-0">
+                    <div className="text-2xl font-bold text-green-600">✓</div>
+                    <div className="text-sm text-gray-600">Complete</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-orange-600">∞</div>
+                    <div className="text-sm text-gray-600">On-Demand</div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Comprehensive Case Display */}
-            <CaseDisplayTabs 
-              caseData={generatedCase} 
-              caseTitle={generatedCase.overview?.caseTitle}
-            />
-
-            {/* Action Buttons */}
-            <div className="flex justify-center space-x-4 mt-8 pt-6 border-t border-gray-200">
-              <button
-                onClick={async () => {
-                  if (savedCaseId) {
-                    router.push(`/case/${savedCaseId}`);
-                  } else {
-                    // Fallback: try to find the latest case from localStorage
-                    const { loadAllCases } = await import('@/utils/caseStorage');
-                    const cases = loadAllCases();
-                    const latestCase = cases[0]; // Most recent case
-                    if (latestCase) {
-                      router.push(`/case/${latestCase.id}`);
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <button
+                  onClick={async () => {
+                    if (savedCaseId) {
+                      router.push(`/case/${savedCaseId}`);
                     } else {
-                      router.push('/');
+                      // Fallback: try to find the latest case from localStorage
+                      const { loadAllCases } = await import('@/utils/caseStorage');
+                      const cases = loadAllCases();
+                      const latestCase = cases[0]; // Most recent case
+                      if (latestCase) {
+                        router.push(`/case/${latestCase.id}`);
+                      } else {
+                        router.push('/');
+                      }
                     }
-                  }
-                }}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center space-x-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                <span>View Case Details</span>
-              </button>
+                  }}
+                  className="px-8 py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-3 text-lg"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <span>View Full Case Details</span>
+                </button>
 
-              <button
-                onClick={() => router.push('/')}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h2a2 2 0 012 2v2H8V5z" />
-                </svg>
-                <span>Go to Dashboard</span>
-              </button>
-              
-              <button
-                onClick={() => {
-                  const dataStr = JSON.stringify(generatedCase, null, 2);
-                  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-                  const exportFileDefaultName = `${generatedCase.overview?.caseTitle?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'generated_case'}.json`;
-                  const linkElement = document.createElement('a');
-                  linkElement.setAttribute('href', dataUri);
-                  linkElement.setAttribute('download', exportFileDefaultName);
-                  linkElement.click();
-                }}
-                className="px-6 py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center space-x-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span>Export JSON</span>
-              </button>
+                <button
+                  onClick={() => {
+                    // Reset form and go to create another case
+                    resetForm();
+                    router.push('/create-case');
+                  }}
+                  className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-3 text-lg"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <span>Create Another Case</span>
+                </button>
+              </div>
+
+              {/* Secondary Actions */}
+              <div className="flex flex-col sm:flex-row justify-center gap-3 mt-4">
+                <button
+                  onClick={() => router.push('/')}
+                  className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h2a2 2 0 012 2v2H8V5z" />
+                  </svg>
+                  <span>Dashboard</span>
+                </button>
+                
+                <button
+                  onClick={() => {
+                    const dataStr = JSON.stringify(generatedCase, null, 2);
+                    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                    const exportFileDefaultName = `${generatedCase.overview?.caseTitle?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'generated_case'}.json`;
+                    const linkElement = document.createElement('a');
+                    linkElement.setAttribute('href', dataUri);
+                    linkElement.setAttribute('download', exportFileDefaultName);
+                    linkElement.click();
+                  }}
+                  className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Export JSON</span>
+                </button>
+              </div>
             </div>
           </div>
         )}

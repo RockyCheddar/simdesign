@@ -103,7 +103,10 @@ export const convertAndSaveGeneratedCase = (
       'AI Generated',
       generatedCase.overview?.clinicalSetting?.location || 'Clinical'
     ].filter(Boolean),
-    isPublic: false
+    isPublic: false,
+    
+    // PRESERVE ORIGINAL AI-GENERATED DATA
+    originalGeneratedData: generatedCase
   };
   
   console.log('Converted SimulationCase:', {

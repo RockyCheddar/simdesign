@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { SimulationCase } from '@/types';
-import { GeneratedCaseData } from '@/types/caseCreation';
 import { loadCase } from '@/utils/caseStorage';
 import { toast } from 'react-hot-toast';
 import CaseDisplayTabs from '@/components/case-display/CaseDisplayTabs';
@@ -56,154 +55,6 @@ const CaseViewPage: React.FC = () => {
     );
   }
 
-  // Convert SimulationCase to GeneratedCaseData format for CaseDisplayTabs
-  const convertToGeneratedCaseData = (simCase: SimulationCase): GeneratedCaseData => {
-    return {
-      overview: {
-        caseTitle: simCase.title,
-        caseSummary: simCase.description,
-        learningObjectives: simCase.learningObjectives || [],
-        patientBasics: {
-          name: simCase.patientInfo.name,
-          age: simCase.patientInfo.age,
-          gender: simCase.patientInfo.gender,
-          race: 'Not specified',
-        },
-        clinicalSetting: {
-          location: 'Clinical Setting',
-          timeOfDay: 'Not specified',
-          acuity: 'medium',
-          environmentalFactors: 'Standard healthcare environment',
-        },
-      },
-      patient: {
-        demographics: {
-          fullName: simCase.patientInfo.name,
-          age: simCase.patientInfo.age,
-          gender: simCase.patientInfo.gender,
-          weight: simCase.patientInfo.weight,
-          height: simCase.patientInfo.height,
-          BMI: Math.round((simCase.patientInfo.weight / Math.pow(simCase.patientInfo.height / 100, 2)) * 10) / 10,
-        },
-        chiefComplaint: simCase.patientInfo.chiefComplaint || 'Chief complaint not specified',
-        historyPresentIllness: {
-          onset: 'Not specified',
-          duration: 'Not specified',
-          severity: 'Not specified',
-          timeline: 'Not specified',
-          associatedSymptoms: [],
-        },
-        currentMedications: simCase.patientInfo.medications.map(med => ({
-          name: med,
-          dose: 'As prescribed',
-          frequency: 'As prescribed',
-          indication: 'As prescribed',
-        })),
-      },
-      presentation: {
-        vitalSigns: {
-          temperature: {
-            value: simCase.scenario?.vitalSigns?.temperature || 98.6,
-            unit: '°F',
-            normalRange: '97.0-99.5°F',
-            status: 'normal',
-            colorCode: 'green',
-            displaySize: 'large bold numbers for card display',
-          },
-          heartRate: {
-            value: simCase.scenario?.vitalSigns?.heartRate || 80,
-            unit: 'bpm',
-            normalRange: '60-100 bpm',
-            status: 'normal',
-            colorCode: 'green',
-            displaySize: 'large bold numbers for card display',
-          },
-          bloodPressure: {
-            systolic: simCase.scenario?.vitalSigns?.bloodPressure?.systolic || 120,
-            diastolic: simCase.scenario?.vitalSigns?.bloodPressure?.diastolic || 80,
-            unit: 'mmHg',
-            normalRange: '<120/80 mmHg',
-            status: 'normal',
-            colorCode: 'green',
-            displaySize: 'large bold numbers for card display',
-          },
-          respiratoryRate: {
-            value: simCase.scenario?.vitalSigns?.respiratoryRate || 16,
-            unit: '/min',
-            normalRange: '12-20/min',
-            status: 'normal',
-            colorCode: 'green',
-            displaySize: 'large bold numbers for card display',
-          },
-          oxygenSaturation: {
-            value: simCase.scenario?.vitalSigns?.oxygenSaturation || 98,
-            unit: '%',
-            normalRange: '95-100%',
-            status: 'normal',
-            colorCode: 'green',
-            displaySize: 'large bold numbers for card display',
-            oxygenSupport: 'Room air',
-          },
-        },
-        physicalExamFindings: {
-          general: simCase.scenario?.physicalExam?.general || 'Patient appears comfortable',
-          primarySystem: 'Cardiovascular',
-          keyAbnormalities: [],
-          normalFindings: [
-            simCase.scenario?.physicalExam?.cardiovascular || 'Regular rate and rhythm',
-            simCase.scenario?.physicalExam?.respiratory || 'Clear to auscultation bilaterally',
-            simCase.scenario?.physicalExam?.neurological || 'Alert and oriented',
-          ],
-        },
-      },
-      treatment: {
-        initialInterventions: [
-          {
-            intervention: 'Initial Assessment',
-            rationale: 'Establish baseline and identify immediate concerns',
-            timing: 'Immediate',
-            expectedOutcome: 'Complete initial evaluation',
-          },
-        ],
-        treatmentPlan: {
-          immediate: ['Monitor vital signs', 'Assess patient comfort'],
-          shortTerm: ['Continue monitoring', 'Reassess as needed'],
-          monitoring: ['Continuous vital sign monitoring', 'Patient response assessment'],
-        },
-        scenarioProgression: {
-          phase1: 'Initial presentation and assessment',
-          phase2: 'Intervention and monitoring',
-          phase3: 'Evaluation and follow-up',
-          endPoint: 'Case resolution',
-        },
-      },
-      simulation: {
-        learningObjectives: simCase.learningObjectives || [],
-        competencyAreas: [
-          {
-            domain: 'Assessment',
-            specificSkills: ['Patient evaluation', 'Clinical reasoning'],
-            assessmentCriteria: ['Accurate assessment', 'Appropriate prioritization'],
-          },
-          {
-            domain: 'Communication',
-            specificSkills: ['Patient interaction', 'Team communication'],
-            assessmentCriteria: ['Clear communication', 'Professional demeanor'],
-          },
-        ],
-        coreAssessment: {
-          criticalActions: ['Complete initial assessment', 'Monitor patient status'],
-          performanceIndicators: ['Timely assessment', 'Appropriate interventions'],
-          safetyConsiderations: ['Patient safety', 'Infection control'],
-        },
-      },
-      smartDefaults: {},
-      onDemandOptions: {},
-    };
-  };
-
-  const generatedCaseData = convertToGeneratedCaseData(simulationCase);
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -237,7 +88,7 @@ const CaseViewPage: React.FC = () => {
 
       {/* Case Display with Tabs */}
       <CaseDisplayTabs 
-        caseData={generatedCaseData} 
+        caseData={simulationCase} 
         caseTitle={simulationCase.title}
       />
     </div>
