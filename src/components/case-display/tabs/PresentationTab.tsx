@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
-import InfoCard from '../components/InfoCard';
+import InfoCard, { DataRow } from '../components/InfoCard';
 import VitalSignCard from '../components/VitalSignCard';
 
 interface PresentationTabProps {
@@ -83,55 +83,56 @@ const PresentationTab: React.FC<PresentationTabProps> = ({ caseData }) => {
       </InfoCard>
 
       {/* Physical Examination Findings */}
-      <InfoCard title="Physical Examination Findings">
-        <div className="space-y-6">
+      <InfoCard 
+        title="Physical Examination Findings"
+        subtitle="Systematic physical assessment findings"
+      >
+        <div className="space-y-0">
           {caseData.presentation?.physicalExamFindings?.general && (
-            <div>
-              <h4 className="text-lg font-medium text-gray-900 mb-2">General Appearance</h4>
-              <p className="text-gray-700">
-                {caseData.presentation.physicalExamFindings.general}
-              </p>
-            </div>
+            <DataRow 
+              label="General Appearance" 
+              value={caseData.presentation.physicalExamFindings.general} 
+            />
           )}
 
           {caseData.presentation?.physicalExamFindings?.primarySystem && (
-            <div>
-              <h4 className="text-lg font-medium text-gray-900 mb-2">Primary System Examination</h4>
-              <p className="text-gray-700">
-                {caseData.presentation.physicalExamFindings.primarySystem}
-              </p>
-            </div>
+            <DataRow 
+              label="Primary System" 
+              value={caseData.presentation.physicalExamFindings.primarySystem} 
+            />
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {caseData.presentation?.physicalExamFindings?.keyAbnormalities && (
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-3">Key Abnormalities</h4>
-                <ul className="space-y-2">
+          {caseData.presentation?.physicalExamFindings?.keyAbnormalities && caseData.presentation.physicalExamFindings.keyAbnormalities.length > 0 && (
+            <DataRow 
+              label="Key Abnormalities" 
+              value={
+                <ul className="space-y-1">
                   {caseData.presentation.physicalExamFindings.keyAbnormalities.map((finding, index) => (
                     <li key={index} className="flex items-start">
-                      <span className="text-red-500 mr-2 mt-1">⚠️</span>
+                      <span className="text-red-500 mr-2 mt-0.5">⚠️</span>
                       <span className="text-red-700 font-medium">{finding}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
-            )}
+              } 
+            />
+          )}
 
-            {caseData.presentation?.physicalExamFindings?.normalFindings && (
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-3">Normal Findings</h4>
-                <ul className="space-y-2">
+          {caseData.presentation?.physicalExamFindings?.normalFindings && caseData.presentation.physicalExamFindings.normalFindings.length > 0 && (
+            <DataRow 
+              label="Normal Findings" 
+              value={
+                <ul className="space-y-1">
                   {caseData.presentation.physicalExamFindings.normalFindings.map((finding, index) => (
                     <li key={index} className="flex items-start">
-                      <span className="text-green-500 mr-2 mt-1">✓</span>
+                      <span className="text-green-500 mr-2 mt-0.5">✓</span>
                       <span className="text-gray-700">{finding}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
-            )}
-          </div>
+              } 
+            />
+          )}
         </div>
       </InfoCard>
 

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
-import InfoCard from '../components/InfoCard';
+import InfoCard, { DataRow } from '../components/InfoCard';
 
 interface PatientTabProps {
   caseData: GeneratedCaseData;
@@ -37,105 +37,104 @@ const PatientTab: React.FC<PatientTabProps> = ({ caseData }) => {
   return (
     <div className="space-y-8">
       {/* Demographics Card */}
-      <InfoCard title="Patient Demographics">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Full Name:</span>
-              <span className="font-semibold text-gray-900">
-                {demographics?.fullName || 'Not specified'}
+      <InfoCard 
+        title="Patient Demographics" 
+        subtitle="Physical characteristics and basic measurements."
+      >
+        <div className="space-y-0">
+          <DataRow 
+            label="Full Name" 
+            value={demographics?.fullName || 'Not specified'} 
+          />
+          <DataRow 
+            label="Age" 
+            value={demographics?.age ? `${demographics.age} years old` : 'Not specified'} 
+          />
+          <DataRow 
+            label="Gender" 
+            value={demographics?.gender ? 
+              demographics.gender.charAt(0).toUpperCase() + demographics.gender.slice(1) : 'Not specified'} 
+          />
+          <DataRow 
+            label="Weight" 
+            value={demographics?.weight ? `${demographics.weight} kg` : 'Not specified'} 
+          />
+          <DataRow 
+            label="Height" 
+            value={demographics?.height ? `${demographics.height} cm` : 'Not specified'} 
+          />
+          <DataRow 
+            label="BMI" 
+            value={bmi ? (
+              <span className="flex items-center space-x-2">
+                <span>{bmi}</span>
+                {bmiStatus && (
+                  <span className={`text-xs font-medium ${bmiStatus.color}`}>
+                    ({bmiStatus.status})
+                  </span>
+                )}
               </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Age:</span>
-              <span className="font-medium text-gray-900">
-                {demographics?.age ? `${demographics.age} years old` : 'Not specified'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Gender:</span>
-              <span className="font-medium text-gray-900 capitalize">
-                {demographics?.gender || 'Not specified'}
-              </span>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Weight:</span>
-              <span className="font-medium text-gray-900">
-                {demographics?.weight ? `${demographics.weight} kg` : 'Not specified'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Height:</span>
-              <span className="font-medium text-gray-900">
-                {demographics?.height ? `${demographics.height} cm` : 'Not specified'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">BMI:</span>
-              <span className={`font-medium ${bmiStatus?.color || 'text-gray-900'}`}>
-                {bmi ? `${bmi} - ${bmiStatus?.status}` : 'Not calculated'}
-              </span>
-            </div>
-          </div>
+            ) : 'Not calculated'} 
+          />
         </div>
       </InfoCard>
 
       {/* Chief Complaint Card */}
-      <InfoCard title="Chief Complaint">
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-          <p className="text-gray-900 italic text-lg">
-            &ldquo;{caseData.patient?.chiefComplaint || 'No chief complaint recorded'}&rdquo;
-          </p>
+      <InfoCard 
+        title="Chief Complaint" 
+        subtitle="Patient's primary concern in their own words."
+      >
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.002 8.002 0 01-7.455-5.26L2 15l1.455 1.74C4.96 18.355 8.282 20 12 20c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12c0 1.6.376 3.112 1.043 4.453L4 18l-1.455-1.74C2.045 15.645 1.5 13.878 1.5 12" />
+            </svg>
+            <div>
+              <p className="text-blue-900 font-medium text-sm">Patient states:</p>
+              <p className="text-blue-800 text-sm mt-1 italic">
+                "{caseData.patient?.chiefComplaint || 'Chief complaint not documented'}"
+              </p>
+            </div>
+          </div>
         </div>
       </InfoCard>
 
       {/* History of Present Illness Card */}
-      <InfoCard title="History of Present Illness">
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <span className="text-gray-500 text-sm">Onset:</span>
-              <p className="font-medium text-gray-900">
-                {caseData.patient?.historyPresentIllness?.onset || 'Not specified'}
-              </p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Duration:</span>
-              <p className="font-medium text-gray-900">
-                {caseData.patient?.historyPresentIllness?.duration || 'Not specified'}
-              </p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Severity:</span>
-              <p className="font-medium text-gray-900">
-                {caseData.patient?.historyPresentIllness?.severity || 'Not specified'}
-              </p>
-            </div>
-          </div>
-          
-          {caseData.patient?.historyPresentIllness?.timeline && (
-            <div>
-              <span className="text-gray-500 text-sm">Timeline:</span>
-              <p className="text-gray-900 mt-1">
-                {caseData.patient.historyPresentIllness.timeline}
-              </p>
-            </div>
-          )}
-
-          {caseData.patient?.historyPresentIllness?.associatedSymptoms && (
-            <div>
-              <span className="text-gray-500 text-sm">Associated Symptoms:</span>
-              <ul className="mt-2 space-y-1">
-                {caseData.patient.historyPresentIllness.associatedSymptoms.map((symptom, index) => (
-                  <li key={index} className="flex items-center text-gray-900">
-                    <span className="text-blue-500 mr-2">•</span>
-                    {symptom}
-                  </li>
-                ))}
-              </ul>
-            </div>
+      <InfoCard 
+        title="History of Present Illness" 
+        subtitle="Timeline and details of the current condition."
+      >
+        <div className="space-y-0">
+          <DataRow 
+            label="Onset" 
+            value={caseData.patient?.historyPresentIllness?.onset || 'Not specified'} 
+          />
+          <DataRow 
+            label="Duration" 
+            value={caseData.patient?.historyPresentIllness?.duration || 'Not specified'} 
+          />
+          <DataRow 
+            label="Severity" 
+            value={caseData.patient?.historyPresentIllness?.severity || 'Not specified'} 
+          />
+          <DataRow 
+            label="Timeline" 
+            value={caseData.patient?.historyPresentIllness?.timeline || 'Not specified'} 
+          />
+          {caseData.patient?.historyPresentIllness?.associatedSymptoms && caseData.patient.historyPresentIllness.associatedSymptoms.length > 0 && (
+            <DataRow 
+              label="Associated Symptoms" 
+              value={
+                <ul className="space-y-1">
+                  {caseData.patient.historyPresentIllness.associatedSymptoms.map((symptom, index) => (
+                    <li key={index} className="flex items-center text-gray-900">
+                      <span className="text-blue-500 mr-2">•</span>
+                      {symptom}
+                    </li>
+                  ))}
+                </ul>
+              } 
+            />
           )}
         </div>
       </InfoCard>
