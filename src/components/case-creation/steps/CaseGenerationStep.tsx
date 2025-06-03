@@ -123,7 +123,7 @@ const CaseGenerationStep: React.FC = () => {
   const statusMessage = getStatusMessage();
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="p-8">
       <div className="text-center space-y-8">
         {/* Status Icon and Message */}
         <div className="space-y-4">

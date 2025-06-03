@@ -3,7 +3,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useCurrentStep, useCaseCreationStore } from '@/stores/caseCreationStore';
-import ProgressStepper from './ProgressStepper';
 import FormNavigation from './FormNavigation';
 import LearningContextStep from './steps/LearningContextStep';
 import ObjectivesRefinementStep from './steps/ObjectivesRefinementStep';
@@ -19,6 +18,16 @@ const CaseCreationWizard: React.FC = () => {
   const router = useRouter();
   const currentStep = useCurrentStep();
   const { resetForm } = useCaseCreationStore();
+
+  const stepTitles = [
+    'Learning Context & Objectives',
+    'AI Objectives Refinement', 
+    'Case Parameter Questions',
+    'Case Preview',
+    'Case Generation'
+  ];
+
+  const completionPercentage = (currentStep / 5) * 100;
 
   const handleCancel = () => {
     resetForm();
@@ -140,12 +149,27 @@ const CaseCreationWizard: React.FC = () => {
         </div>
       </header>
 
-      {/* Progress Stepper */}
-      <ProgressStepper />
-
       {/* Main Content */}
-      <div className="flex-1">
-        {renderCurrentStep()}
+      <div className="flex-1 py-8">
+        <div className="max-w-4xl mx-auto px-6">
+          {/* Progress Bar with Step Info */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between text-sm font-medium text-gray-700 mb-2">
+              <span>Step {currentStep} of 5: {stepTitles[currentStep - 1]}</span>
+              <span>{Math.round(completionPercentage)}% Complete</span>
+            </div>
+            <div className="bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${completionPercentage}%` }}
+              />
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            {renderCurrentStep()}
+          </div>
+        </div>
       </div>
 
       {/* Navigation */}

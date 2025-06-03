@@ -131,7 +131,7 @@ const ParameterQuestionsStep: React.FC = () => {
   // Show loading state while generating questions
   if (isGenerating || generationProgress.status === 'generating') {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="p-8">
         <div className="text-center space-y-6">
           <div className="flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -157,7 +157,7 @@ const ParameterQuestionsStep: React.FC = () => {
   // Show error state if generation failed
   if (generationProgress.status === 'error') {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="p-8">
         <div className="text-center space-y-6">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <div className="flex items-center justify-center mb-4">
@@ -186,7 +186,7 @@ const ParameterQuestionsStep: React.FC = () => {
   // Show empty state if no questions generated yet
   if (parameterQuestions.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="p-8">
         <div className="text-center space-y-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Generate Parameter Questions
@@ -217,7 +217,7 @@ const ParameterQuestionsStep: React.FC = () => {
   const progressPercentage = (answeredCount / parameterQuestions.length) * 100;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="p-8">
       <div className="space-y-8">
         {/* Header */}
         <div className="text-center">
@@ -231,25 +231,10 @@ const ParameterQuestionsStep: React.FC = () => {
 
         {/* Progress Indicator */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-gray-700">
+          <div className="text-center">
+            <span className="text-lg font-medium text-gray-700">
               Question {currentQuestionIndex + 1} of {parameterQuestions.length}
             </span>
-            <span className="text-sm text-gray-600">
-              {answeredCount} answered
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentQuestionIndex + 1) / parameterQuestions.length) * 100}%` }}
-            />
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1">
-            <div
-              className="bg-green-600 h-1 rounded-full transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
-            />
           </div>
         </div>
 
