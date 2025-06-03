@@ -46,7 +46,7 @@ const CaseDisplayTabs: React.FC<CaseDisplayTabsProps> = ({ caseData, caseTitle }
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="mx-auto p-6" style={{ maxWidth: '992px' }}>
       {/* Header with Case Title */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -58,27 +58,27 @@ const CaseDisplayTabs: React.FC<CaseDisplayTabsProps> = ({ caseData, caseTitle }
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-8">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+      <div className="mb-8">
+        <div className="grid grid-cols-6 gap-2">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`
-                group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200
+                group relative flex flex-col items-center py-4 px-3 rounded-lg border-2 font-medium text-sm transition-all duration-200 hover:shadow-md
                 ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 bg-blue-50 text-blue-600 shadow-md'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
                 }
               `}
               aria-current={activeTab === tab.id ? 'page' : undefined}
             >
-              <span className="mr-2 text-lg">{tab.icon}</span>
-              {tab.label}
+              <span className="text-2xl mb-2">{tab.icon}</span>
+              <span className="text-center leading-tight">{tab.label}</span>
             </button>
           ))}
-        </nav>
+        </div>
       </div>
 
       {/* Tab Content */}
