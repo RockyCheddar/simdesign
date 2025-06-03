@@ -62,7 +62,7 @@ const VitalSignCard: React.FC<VitalSignCardProps> = ({
 
   return (
     <div className={`
-      ${styles.background} ${styles.border} border-2 rounded-lg p-6 transition-all duration-200 hover:shadow-md
+      ${styles.background} ${styles.border} border-2 rounded-lg p-4 transition-all duration-200 hover:shadow-md
     `}>
       {/* Label */}
       <div className="text-sm font-medium text-gray-600 mb-2">
@@ -70,11 +70,11 @@ const VitalSignCard: React.FC<VitalSignCardProps> = ({
       </div>
 
       {/* Large Value Display */}
-      <div className="flex items-baseline space-x-2 mb-3">
-        <span className={`text-3xl font-bold ${styles.textColor}`}>
+      <div className="flex items-baseline space-x-1 mb-2">
+        <span className={`text-2xl font-bold ${styles.textColor}`}>
           {value}
         </span>
-        <span className={`text-lg font-medium ${styles.textColor}`}>
+        <span className={`text-sm font-medium ${styles.textColor}`}>
           {unit}
         </span>
       </div>
