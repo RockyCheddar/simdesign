@@ -193,13 +193,17 @@ export const useCaseCreationStore = create<CaseCreationStore>()(
           category: string;
           question: string;
           options: string[];
+          whyThisMatters?: string;
+          focusArea?: string;
         }) => ({
           id: q.id,
           category: q.category,
           question: q.question,
           type: 'select' as const,
           options: q.options,
-          required: true
+          required: true,
+          whyThisMatters: q.whyThisMatters,
+          focusArea: q.focusArea
         }));
 
         set(state => ({

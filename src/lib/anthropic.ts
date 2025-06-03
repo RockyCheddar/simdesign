@@ -241,52 +241,61 @@ export const generateParameterQuestions = async (
   category: 'clinical_scenario' | 'simulation_resources' | 'complexity_fidelity' | 'assessment_methods' | 'facilitation_style';
   question: string;
   options: string[];
+  whyThisMatters: string;
+  focusArea: string;
 }>> => {
   let response: Anthropic.Messages.Message | null = null;
   try {
-    const prompt = `Based on the learning context and refined objectives below, generate 6-8 critical parameter questions for creating a realistic healthcare simulation case that follows INACSL best practices.
+    const prompt = `Based on the learning context and objectives below, generate 6-8 focused parameter questions that help determine what the simulation case needs to become. Each question should be concise and guide specific case design decisions.
 
 Learning Context:
 - Target Learners: ${learningContext.targetLearners || 'Not specified'}
-- Experience Level: ${learningContext.experienceLevel || 'Not specified'}
+- Experience Level: ${learningContext.experienceLevel || 'Not specified'} 
 - Clinical Domain: ${learningContext.clinicalDomain || 'Not specified'}
 - Duration: ${learningContext.duration || 'Not specified'} minutes
 - Participant Count: ${learningContext.participantCount || 'Not specified'}
 
-Refined Learning Objectives:
+Learning Objectives:
 ${refinedObjectives.map(obj => `- ${obj}`).join('\n')}
 
-Generate questions covering these domains:
-1. Clinical Scenario Details (patient condition, age, presentation, backstory)
-2. Simulation Resources (equipment type, fidelity level, props available)
-3. Complexity & Realism (case severity, complications, time pressure)
-4. Assessment Focus (formative vs summative, observation methods)
-5. Facilitation Approach (instructor involvement, cues, team dynamics)
+Generate concise questions covering these areas:
+1. **Clinical Presentation** - How should the patient present to achieve learning goals?
+2. **Learning Challenge** - What complexity level suits the learners?
+3. **Assessment Focus** - How will competency be measured?
+4. **Simulation Setup** - What environment and resources are needed?
+5. **Team Dynamics** - How should collaboration be structured?
 
-Each question should have 3-4 multiple choice options appropriate for the learner level and clinical domain. 
+Each question should:
+- Be concise and focused on case design decisions
+- Have 3-4 clear, distinct options representing different approaches
+- Include a brief, simple explanation of why we're asking this question
+- Be tailored to the learner level and clinical domain
+- Support the stated learning objectives
 
 Return as JSON array with this exact structure:
 [
   {
     "id": "unique_question_id",
     "category": "clinical_scenario|simulation_resources|complexity_fidelity|assessment_methods|facilitation_style",
-    "question": "Question text here?",
-    "options": ["Option 1", "Option 2", "Option 3", "Option 4"]
+    "question": "Concise, specific question about case design?",
+    "options": [
+      "Option 1: Clear approach with specific focus",
+      "Option 2: Alternative approach with different emphasis", 
+      "Option 3: Third approach for different learning outcome",
+      "Option 4: Fourth approach with unique educational value"
+    ],
+    "whyThisMatters": "Brief 1-2 sentence explanation of why this question helps determine what the case needs to become. Keep it simple and focused on the practical impact.",
+    "focusArea": "What this question determines for case design"
   }
 ]
 
-IMPORTANT:
-- Return ONLY the JSON array, no markdown formatting or code blocks
-- Ensure your response is valid JSON with no control characters
-- Escape any quotes, newlines, or special characters within string values
-- Do not include any text before or after the JSON array
-
-Ensure questions are:
-- Specific to the clinical domain and learner level
-- Aligned with INACSL simulation standards
-- Practical for case generation
-- Cover all 5 domains with 1-2 questions each
-- Have clear, distinct multiple choice options`;
+Requirements:
+- Questions must be concise and decision-focused
+- Options should be clear and distinct
+- "whyThisMatters" should be 1-2 sentences maximum
+- Keep explanations simple and practical
+- Focus on what the case needs to become
+- Return ONLY valid JSON with no markdown formatting`;
 
     response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -378,7 +387,9 @@ Ensure questions are:
         id: q.id,
         category: q.category,
         question: q.question,
-        options: q.options
+        options: q.options,
+        whyThisMatters: q.whyThisMatters || '',
+        focusArea: q.focusArea || '',
       };
     });
 

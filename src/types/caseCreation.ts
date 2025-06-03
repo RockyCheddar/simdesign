@@ -33,6 +33,8 @@ export interface ParameterQuestion {
   options?: string[];
   required: boolean;
   answer?: string | number | boolean | string[];
+  whyThisMatters?: string;
+  focusArea?: string;
 }
 
 export interface ParameterAnswers {

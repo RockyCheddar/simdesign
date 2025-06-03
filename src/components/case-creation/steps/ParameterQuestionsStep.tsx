@@ -250,7 +250,7 @@ const ParameterQuestionsStep: React.FC = () => {
                     {getCategoryTitle(currentQuestion.category)}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {getCategoryDescription(currentQuestion.category)}
+                    {currentQuestion.focusArea || getCategoryDescription(currentQuestion.category)}
                   </p>
                 </div>
               </div>
@@ -288,6 +288,23 @@ const ParameterQuestionsStep: React.FC = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Why This Matters Box */}
+                {currentQuestion.whyThisMatters && (
+                  <div className="bg-blue-50/50 border border-blue-200/60 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <h4 className="text-base font-semibold text-blue-900 mb-1">Why This Matters</h4>
+                        <p className="text-sm text-blue-800">
+                          {currentQuestion.whyThisMatters}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Navigation */}
                 <div className="flex items-center justify-between pt-6 border-t border-gray-200">
@@ -336,21 +353,6 @@ const ParameterQuestionsStep: React.FC = () => {
             </div>
           </div>
         )}
-
-        {/* Summary */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start">
-            <svg className="w-5 h-5 text-blue-500 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-            </svg>
-            <div>
-              <h4 className="text-sm font-medium text-blue-800 mb-1">INACSL Standards</h4>
-              <p className="text-sm text-blue-700">
-                These questions follow INACSL best practices for simulation design, ensuring your case meets professional healthcare simulation standards.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
