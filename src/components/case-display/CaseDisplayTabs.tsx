@@ -7,6 +7,7 @@ import OverviewTab from './tabs/OverviewTab';
 import PatientTab from './tabs/PatientTab';
 import PresentationTab from './tabs/PresentationTab';
 import TreatmentTab from './tabs/TreatmentTab';
+import ProgressionTab from './tabs/ProgressionTab';
 import SimulationTab from './tabs/SimulationTab';
 import RawOutputTab from './tabs/RawOutputTab';
 
@@ -20,6 +21,7 @@ const tabs = [
   { id: 'patient', label: 'Patient', icon: '👤' },
   { id: 'presentation', label: 'Presentation', icon: '🩺' },
   { id: 'treatment', label: 'Treatment', icon: '💊' },
+  { id: 'progression', label: 'Progression', icon: '📈' },
   { id: 'simulation', label: 'Simulation', icon: '🎯' },
   { id: 'raw', label: 'Raw Output', icon: '📄' },
 ];
@@ -165,6 +167,8 @@ const CaseDisplayTabs: React.FC<CaseDisplayTabsProps> = ({ caseData, caseTitle }
         return <PresentationTab caseData={displayData} />;
       case 'treatment':
         return <TreatmentTab caseData={displayData} />;
+      case 'progression':
+        return <ProgressionTab caseData={displayData} />;
       case 'simulation':
         return <SimulationTab caseData={displayData} />;
       case 'raw':
@@ -188,7 +192,7 @@ const CaseDisplayTabs: React.FC<CaseDisplayTabsProps> = ({ caseData, caseTitle }
 
       {/* Tab Navigation */}
       <div className="mb-8">
-        <div className="grid grid-cols-6 gap-2">
+        <div className="grid grid-cols-7 gap-2">
           {tabs.map((tab) => (
             <button
               key={tab.id}
