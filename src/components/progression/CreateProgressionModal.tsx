@@ -58,62 +58,93 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
   }, []);
 
   /**
-   * Simulate AI generation process
+   * Real AI generation using our API endpoint
    */
-  const simulateAIGeneration = useCallback(async (): Promise<Omit<ProgressionScenario, 'id' | 'createdAt'>> => {
+  const generateWithAI = useCallback(async (): Promise<Omit<ProgressionScenario, 'id' | 'createdAt'>> => {
+    // Progress tracking for user feedback
     const stages: AIGenerationProgress[] = [
-      { stage: 'initializing', progress: 20, message: 'Initializing scenario generation...' },
-      { stage: 'generating-timeline', progress: 50, message: 'Creating timeline data points...' },
-      { stage: 'creating-branches', progress: 80, message: 'Generating conditional branches...' },
-      { stage: 'finalizing', progress: 100, message: 'Finalizing scenario...' }
+      { stage: 'initializing', progress: 20, message: 'Preparing scenario generation...' },
+      { stage: 'generating-timeline', progress: 60, message: 'AI is creating timeline and data points...' },
+      { stage: 'creating-branches', progress: 85, message: 'Generating conditional pathways...' },
+      { stage: 'finalizing', progress: 100, message: 'Finalizing your scenario...' }
     ];
 
-    for (const stage of stages) {
-      setGenerationProgress(stage);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+    // Show initial progress
+    setGenerationProgress(stages[0]);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    try {
+      // Make API call to generate scenario
+      const response = await fetch('/api/progression/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          formData,
+          caseData: undefined // TODO: Pass actual case data if available
+        }),
+      });
+
+      // Update progress during API call
+      setGenerationProgress(stages[1]);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.error || 'Failed to generate scenario');
+      }
+
+      setGenerationProgress(stages[2]);
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'AI generation failed');
+      }
+
+      // Final progress update
+      setGenerationProgress(stages[3]);
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      return result.scenario;
+
+    } catch (error) {
+      console.error('AI generation error:', error);
+      
+      // Fallback to basic scenario structure if AI fails
+      const fallbackScenario: Omit<ProgressionScenario, 'id' | 'createdAt'> = {
+        type: formData.type,
+        title: formData.title,
+        description: formData.description + ' (AI generation failed, using fallback)',
+        isGenerated: false, // Mark as not AI generated due to failure
+        timelineData: {
+          duration: formData.parameters.timelineLength || 30,
+          dataPoints: [
+            {
+              timeMinutes: 0,
+              vitalSigns: {
+                bloodPressure: { systolic: 120, diastolic: 80 },
+                heartRate: 80,
+                respiratoryRate: 16,
+                temperature: 98.6,
+                oxygenSaturation: 98,
+                painLevel: 3
+              },
+              physicalFindings: ['Patient baseline presentation - requires instructor customization'],
+              patientResponse: 'Patient response - requires instructor input',
+              clinicalEvents: ['Initial assessment'],
+              significance: 'normal' as const,
+              instructorNotes: 'AI generation failed - please customize this timeline manually'
+            }
+          ],
+          branches: []
+        },
+        parameters: formData.parameters,
+        instructorNotes: `AI generation failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please customize this scenario manually.`
+      };
+      
+      return fallbackScenario;
     }
-
-    // Generate mock timeline data based on type
-    const mockTimelineData = {
-      duration: formData.parameters.timelineLength || 30,
-      dataPoints: [
-        {
-          timeMinutes: 0,
-          vitalSigns: {
-            bloodPressure: { systolic: 120, diastolic: 80 },
-            heartRate: 80,
-            respiratoryRate: 16,
-            temperature: 98.6,
-            oxygenSaturation: 98,
-            painLevel: 3
-          },
-          physicalFindings: ['Alert and oriented', 'No acute distress'],
-          patientResponse: 'Patient appears stable',
-          clinicalEvents: ['Initial assessment completed'],
-          significance: 'normal' as const
-        }
-      ],
-      branches: formData.type === 'conditional' ? [
-        {
-          id: 'branch-1',
-          condition: 'medication_given_within_5_min',
-          conditionDisplay: 'Medication given within 5 minutes',
-          timeline: [],
-          outcome: 'positive' as const,
-          probability: 75
-        }
-      ] : undefined
-    };
-
-    return {
-      type: formData.type,
-      title: formData.title,
-      description: formData.description,
-      isGenerated: formData.generateWithAI,
-      timelineData: mockTimelineData,
-      parameters: formData.parameters,
-      instructorNotes: `Generated ${formData.type} scenario based on case data`
-    };
   }, [formData]);
 
   if (!isOpen) return null;
@@ -140,7 +171,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
     if (formData.generateWithAI) {
       setStep('generating');
       try {
-        const generatedScenario = await simulateAIGeneration();
+        const generatedScenario = await generateWithAI();
         onCreateScenario(generatedScenario);
       } catch (error) {
         console.error('Error generating scenario:', error);
@@ -350,6 +381,86 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                     </select>
                   </div>
                 </>
+              )}
+
+              {/* Additional AI Generation Parameters */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Scenario Duration (minutes)
+                </label>
+                <input
+                  type="number"
+                  value={formData.parameters.duration || 30}
+                  onChange={(e) => handleParameterChange('duration', parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  min="10"
+                  max="180"
+                />
+              </div>
+
+              {formData.type === 'conditional' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Decision Window (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.parameters.decisionWindow || 5}
+                    onChange={(e) => handleParameterChange('decisionWindow', parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    min="1"
+                    max="30"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Time window for critical decision making</p>
+                </div>
+              )}
+
+              {formData.type === 'time-based' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Progression Rate
+                    </label>
+                    <select
+                      value={formData.parameters.progressionRate || 'moderate'}
+                      onChange={(e) => handleParameterChange('progressionRate', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="slow">Slow - Gradual progression over time</option>
+                      <option value="moderate">Moderate - Standard disease progression</option>
+                      <option value="rapid">Rapid - Fast-moving clinical scenario</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Evolution Focus
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.parameters.evolutionFocus || ''}
+                      onChange={(e) => handleParameterChange('evolutionFocus', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="e.g., Respiratory failure, Sepsis progression"
+                    />
+                  </div>
+                </>
+              )}
+
+              {formData.type === 'complication' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Trigger Timing (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.parameters.triggerTiming || 10}
+                    onChange={(e) => handleParameterChange('triggerTiming', parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    min="1"
+                    max="60"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">When the complication should occur</p>
+                </div>
               )}
             </div>
 

@@ -1,259 +1,433 @@
 'use client';
 
 import React, { useState } from 'react';
+import { 
+  ChevronDown, 
+  ChevronRight,
+  User, 
+  Clipboard, 
+  Activity, 
+  Stethoscope, 
+  Clock, 
+  AlertTriangle, 
+  XCircle, 
+  TrendingUp, 
+  TrendingDown
+} from 'lucide-react';
 import { TimelineData, TimelinePoint, ConditionalBranch } from '@/types/progression';
 import { VitalSigns } from '@/types';
 
 interface TimelineVisualizationProps {
   timelineData: TimelineData;
   type: 'conditional' | 'time-based' | 'complication';
+  title?: string;
   onPointClick?: (point: TimelinePoint) => void;
   onBranchClick?: (branch: ConditionalBranch) => void;
 }
 
+interface CollapsibleTimelineProps {
+  title: string;
+  subtitle?: string;
+  isExpanded: boolean;
+  onToggle: () => void;
+  accentColor?: string;
+  children: React.ReactNode;
+}
+
 /**
- * TimelineVisualization - Visual representation of progression scenarios
- * Shows timeline data points and conditional branches
+ * CollapsibleTimeline - Wrapper component for collapsible timeline sections
+ */
+const CollapsibleTimeline: React.FC<CollapsibleTimelineProps> = ({
+  title,
+  subtitle,
+  isExpanded,
+  onToggle,
+  accentColor = 'blue',
+  children
+}) => {
+  return (
+    <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
+      {/* Collapsible Header */}
+      <button
+        onClick={onToggle}
+        className={`w-full p-4 bg-gray-50 border-b border-gray-200 hover:bg-gray-100 transition-colors duration-200 text-left`}
+        aria-expanded={isExpanded}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full bg-${accentColor}-500`}></div>
+              {title}
+            </h3>
+            {subtitle && (
+              <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {isExpanded ? (
+              <ChevronDown className="h-5 w-5 text-gray-500 transition-transform duration-200" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-gray-500 transition-transform duration-200" />
+            )}
+          </div>
+        </div>
+      </button>
+
+      {/* Collapsible Content */}
+      <div 
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div className="p-6">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * TimelineVisualization - Medical timeline design with collapsible functionality
+ * Shows timeline data points with proper medical timeline styling
  */
 const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
   timelineData,
   type,
+  title,
   onPointClick,
   onBranchClick
 }) => {
-  const [selectedPoint, setSelectedPoint] = useState<TimelinePoint | null>(null);
-  const [selectedBranch, setSelectedBranch] = useState<ConditionalBranch | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    main: false,
+    ...timelineData.branches?.reduce((acc, branch) => ({ ...acc, [branch.id]: false }), {}) || {}
+  });
 
   /**
-   * Get significance color for timeline points
+   * Toggle section expansion
    */
-  const getSignificanceColor = (significance: string) => {
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  /**
+   * Get event icon based on significance and clinical events
+   */
+  const getEventIcon = (point: TimelinePoint) => {
+    const events = point.clinicalEvents.join(' ').toLowerCase();
+    
+    if (events.includes('arrival') || events.includes('admission')) {
+      return <User className="h-4 w-4" />;
+    }
+    if (events.includes('assessment') || events.includes('examination')) {
+      return <Clipboard className="h-4 w-4" />;
+    }
+    if (events.includes('vital') || events.includes('monitoring')) {
+      return <Activity className="h-4 w-4" />;
+    }
+    if (events.includes('intervention') || events.includes('medication') || events.includes('treatment')) {
+      return <Stethoscope className="h-4 w-4" />;
+    }
+    if (point.significance === 'critical') {
+      return <XCircle className="h-4 w-4" />;
+    }
+    if (events.includes('deterioration') || events.includes('worse')) {
+      return <TrendingDown className="h-4 w-4" />;
+    }
+    if (events.includes('improvement') || events.includes('better')) {
+      return <TrendingUp className="h-4 w-4" />;
+    }
+    
+    return <Clock className="h-4 w-4" />;
+  };
+
+  /**
+   * Get severity color classes
+   */
+  const getSeverityColor = (significance: string) => {
     switch (significance) {
       case 'normal':
-        return 'bg-green-100 border-green-400 text-green-800';
+        return {
+          border: 'border-green-300',
+          bg: 'bg-green-100',
+          text: 'text-green-800',
+          badge: 'bg-green-100 text-green-800 border-green-200'
+        };
       case 'concerning':
-        return 'bg-yellow-100 border-yellow-400 text-yellow-800';
+        return {
+          border: 'border-yellow-300',
+          bg: 'bg-yellow-100',
+          text: 'text-yellow-800',
+          badge: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+        };
       case 'critical':
-        return 'bg-red-100 border-red-400 text-red-800';
+        return {
+          border: 'border-red-300',
+          bg: 'bg-red-100',
+          text: 'text-red-800',
+          badge: 'bg-red-100 text-red-800 border-red-200'
+        };
       default:
-        return 'bg-gray-100 border-gray-400 text-gray-800';
+        return {
+          border: 'border-gray-300',
+          bg: 'bg-gray-100',
+          text: 'text-gray-800',
+          badge: 'bg-gray-100 text-gray-800 border-gray-200'
+        };
     }
   };
 
   /**
-   * Get outcome color for branches
+   * Format time from minutes to HH:MM
    */
-  const getOutcomeColor = (outcome: string) => {
-    switch (outcome) {
-      case 'positive':
-        return 'bg-green-50 border-green-300 text-green-700';
-      case 'negative':
-        return 'bg-red-50 border-red-300 text-red-700';
-      case 'neutral':
-        return 'bg-gray-50 border-gray-300 text-gray-700';
-      default:
-        return 'bg-gray-50 border-gray-300 text-gray-700';
-    }
+  const formatTime = (minutes: number) => {
+    const baseHour = 9; // Start time 09:00
+    const totalMinutes = baseHour * 60 + minutes;
+    const hours = Math.floor(totalMinutes / 60) % 24;
+    const mins = totalMinutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
   };
 
   /**
-   * Format vital signs for display
+   * Calculate severity score based on vital signs
    */
-  const formatVitalSigns = (vitalSigns: VitalSigns) => {
-    return [
-      `BP: ${vitalSigns.bloodPressure.systolic}/${vitalSigns.bloodPressure.diastolic}`,
-      `HR: ${vitalSigns.heartRate}`,
-      `RR: ${vitalSigns.respiratoryRate}`,
-      `Temp: ${vitalSigns.temperature}°F`,
-      `SpO2: ${vitalSigns.oxygenSaturation}%`
-    ].join(' | ');
+  const calculateSeverityScore = (vitals: VitalSigns) => {
+    let score = 0;
+    
+    // Heart rate scoring
+    if (vitals.heartRate < 51 || vitals.heartRate > 100) score += 1;
+    if (vitals.heartRate < 41 || vitals.heartRate > 130) score += 2;
+    
+    // Blood pressure scoring  
+    if (vitals.bloodPressure.systolic < 101 || vitals.bloodPressure.systolic > 179) score += 1;
+    if (vitals.bloodPressure.systolic < 91 || vitals.bloodPressure.systolic > 199) score += 2;
+    
+    // Respiratory rate scoring
+    if (vitals.respiratoryRate < 12 || vitals.respiratoryRate > 20) score += 1;
+    if (vitals.respiratoryRate < 9 || vitals.respiratoryRate > 24) score += 2;
+    
+    // Oxygen saturation scoring
+    if (vitals.oxygenSaturation < 96) score += 1;
+    if (vitals.oxygenSaturation < 92) score += 2;
+    
+    return score;
   };
 
   /**
-   * Handle point selection
+   * Get score color
    */
-  const handlePointClick = (point: TimelinePoint) => {
-    setSelectedPoint(point);
-    onPointClick?.(point);
+  const getScoreColor = (score: number) => {
+    if (score <= 2) return "bg-green-100 text-green-800";
+    if (score <= 4) return "bg-yellow-100 text-yellow-800";
+    if (score <= 6) return "bg-orange-100 text-orange-800";
+    return "bg-red-100 text-red-800";
   };
 
   /**
-   * Handle branch selection
+   * Render timeline content
    */
-  const handleBranchClick = (branch: ConditionalBranch) => {
-    setSelectedBranch(branch);
-    onBranchClick?.(branch);
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Timeline Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
-          {type === 'conditional' && '⚡ Conditional Timeline'}
-          {type === 'time-based' && '⏰ Time-Based Progression'}
-          {type === 'complication' && '⚠️ Complication Timeline'}
-        </h3>
-        <div className="text-sm text-gray-600">
-          Duration: {timelineData.duration} minutes
-        </div>
-      </div>
-
-      {/* Main Timeline */}
+  const renderTimeline = (points: TimelinePoint[], prefix = '') => {
+    return (
       <div className="relative">
-        {/* Timeline Line */}
-        <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+        {/* Timeline line */}
+        <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
-        {/* Timeline Points */}
         <div className="space-y-6">
-          {timelineData.dataPoints.map((point, index) => (
-            <div key={index} className="relative flex items-start">
-              {/* Timeline Marker */}
-              <div 
-                className={`relative z-10 w-4 h-4 rounded-full border-2 cursor-pointer transition-all duration-200 hover:scale-125 ${getSignificanceColor(point.significance)}`}
-                onClick={() => handlePointClick(point)}
-              >
-                {selectedPoint === point && (
-                  <div className="absolute inset-0 rounded-full animate-ping bg-current opacity-75"></div>
-                )}
-              </div>
-
-              {/* Timeline Content */}
-              <div className="ml-6 flex-1">
-                <div 
-                  className={`bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer ${
-                    selectedPoint === point ? 'ring-2 ring-blue-500' : ''
-                  }`}
-                  onClick={() => handlePointClick(point)}
+          {points.map((point, index) => {
+            const severityColors = getSeverityColor(point.significance);
+            const severityScore = calculateSeverityScore(point.vitalSigns);
+            
+            return (
+              <div key={`${prefix}${index}`} className="relative flex items-start gap-4">
+                {/* Timeline dot */}
+                <div
+                  className={`relative z-10 flex items-center justify-center w-16 h-16 rounded-full border-4 bg-white ${severityColors.border}`}
                 >
-                  {/* Time and Significance */}
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-900">
-                      {point.timeMinutes} minutes
-                    </span>
-                    <span className={`text-xs px-2 py-1 rounded-full border ${getSignificanceColor(point.significance)}`}>
-                      {point.significance}
-                    </span>
+                  <div className={`p-2 rounded-full ${severityColors.bg}`}>
+                    {getEventIcon(point)}
                   </div>
+                </div>
 
-                  {/* Vital Signs */}
-                  <div className="text-xs text-gray-600 mb-2 font-mono">
-                    {formatVitalSigns(point.vitalSigns)}
-                  </div>
-
-                  {/* Patient Response */}
-                  <div className="mb-2">
-                    <span className="text-sm font-medium text-gray-700">Patient: </span>
-                    <span className="text-sm text-gray-600">{point.patientResponse}</span>
-                  </div>
-
-                  {/* Physical Findings */}
-                  {point.physicalFindings.length > 0 && (
-                    <div className="mb-2">
-                      <span className="text-sm font-medium text-gray-700">Findings: </span>
-                      <span className="text-sm text-gray-600">
-                        {point.physicalFindings.join(', ')}
+                {/* Event content */}
+                <div className="flex-1 min-w-0">
+                  <div 
+                    className="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                    onClick={() => onPointClick?.(point)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded border">
+                          {formatTime(point.timeMinutes)}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded border ${getScoreColor(severityScore)}`}>
+                          Score: {severityScore}
+                        </span>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded border ${severityColors.badge}`}>
+                        {point.significance.toUpperCase()}
                       </span>
                     </div>
-                  )}
 
-                  {/* Clinical Events */}
-                  {point.clinicalEvents.length > 0 && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Events: </span>
-                      <span className="text-sm text-gray-600">
-                        {point.clinicalEvents.join(', ')}
-                      </span>
+                    <h3 className="font-medium text-gray-900 mb-1">
+                      {point.clinicalEvents.length > 0 ? point.clinicalEvents[0] : 'Clinical Event'}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">{point.patientResponse}</p>
+
+                    {/* Physical Findings */}
+                    {point.physicalFindings.length > 0 && (
+                      <p className="text-sm text-gray-600 mb-3">
+                        <strong>Findings:</strong> {point.physicalFindings.join(', ')}
+                      </p>
+                    )}
+
+                    {/* Vital signs */}
+                    <div className="bg-gray-50 rounded-md p-3 mt-3">
+                      <h4 className="text-xs font-medium text-gray-700 mb-2">VITAL SIGNS</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                        <div>
+                          <span className="text-gray-500">BP:</span>{' '}
+                          <span className="font-medium">
+                            {point.vitalSigns.bloodPressure.systolic}/{point.vitalSigns.bloodPressure.diastolic}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">HR:</span>{' '}
+                          <span className="font-medium">{point.vitalSigns.heartRate} bpm</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">RR:</span>{' '}
+                          <span className="font-medium">{point.vitalSigns.respiratoryRate}/min</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Temp:</span>{' '}
+                          <span className="font-medium">{point.vitalSigns.temperature}°F</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">SpO2:</span>{' '}
+                          <span className="font-medium">{point.vitalSigns.oxygenSaturation}%</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Pain:</span>{' '}
+                          <span className="font-medium">{point.vitalSigns.painLevel}/10</span>
+                        </div>
+                      </div>
                     </div>
-                  )}
+
+                    {/* Instructor Notes */}
+                    {point.instructorNotes && (
+                      <div className="mt-3 p-2 bg-blue-50 border-l-4 border-blue-300 rounded">
+                        <p className="text-xs text-blue-700">
+                          <strong>Instructor Notes:</strong> {point.instructorNotes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
+    );
+  };
+
+  /**
+   * Get scenario type configuration
+   */
+  const getScenarioConfig = () => {
+    switch (type) {
+      case 'conditional':
+        return {
+          icon: '⚡',
+          color: 'blue',
+          title: title || 'Conditional Branching Scenario',
+          subtitle: 'Multiple pathways based on decisions and interventions'
+        };
+      case 'time-based':
+        return {
+          icon: '⏰',
+          color: 'green',
+          title: title || 'Time-Based Evolution Scenario',
+          subtitle: 'Natural progression of patient condition over time'
+        };
+      case 'complication':
+        return {
+          icon: '⚠️',
+          color: 'orange',
+          title: title || 'Complication Scenario',
+          subtitle: 'Unexpected complications and their management'
+        };
+      default:
+        return {
+          icon: '📈',
+          color: 'gray',
+          title: title || 'Progression Scenario',
+          subtitle: 'Clinical progression timeline'
+        };
+    }
+  };
+
+  const config = getScenarioConfig();
+
+  return (
+    <div className="space-y-4">
+      {/* Main Timeline */}
+      <CollapsibleTimeline
+        title={`${config.icon} ${config.title}`}
+        subtitle={`${config.subtitle} • Duration: ${timelineData.duration} minutes • ${timelineData.dataPoints.length} events`}
+        isExpanded={expandedSections.main}
+        onToggle={() => toggleSection('main')}
+        accentColor={config.color}
+      >
+        {renderTimeline(timelineData.dataPoints)}
+      </CollapsibleTimeline>
 
       {/* Conditional Branches */}
       {type === 'conditional' && timelineData.branches && timelineData.branches.length > 0 && (
-        <div className="mt-8">
-          <h4 className="text-md font-semibold text-gray-900 mb-4">Conditional Branches</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {timelineData.branches.map((branch) => (
-              <div
-                key={branch.id}
-                className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                  selectedBranch === branch ? 'ring-2 ring-blue-500' : ''
-                } ${getOutcomeColor(branch.outcome)}`}
-                onClick={() => handleBranchClick(branch)}
+        <div className="space-y-4">
+          {timelineData.branches.map((branch) => (
+            <CollapsibleTimeline
+              key={branch.id}
+              title={`Branch: ${branch.conditionDisplay}`}
+              subtitle={`${branch.outcome.charAt(0).toUpperCase() + branch.outcome.slice(1)} outcome • ${branch.probability}% probability • ${branch.timeline.length} events`}
+              isExpanded={expandedSections[branch.id]}
+              onToggle={() => toggleSection(branch.id)}
+              accentColor={branch.outcome === 'positive' ? 'green' : branch.outcome === 'negative' ? 'red' : 'gray'}
+            >
+              <div 
+                className="cursor-pointer"
+                onClick={() => onBranchClick?.(branch)}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <h5 className="font-medium text-gray-900">
-                    {branch.conditionDisplay}
-                  </h5>
-                  <span className="text-xs px-2 py-1 rounded-full bg-white border">
-                    {branch.probability}%
-                  </span>
-                </div>
-                <div className="text-sm text-gray-600 mb-2">
-                  Outcome: <span className="font-medium">{branch.outcome}</span>
-                </div>
-                <div className="text-xs text-gray-500">
-                  {branch.timeline.length} timeline points
-                </div>
+                {branch.timeline.length > 0 ? (
+                  renderTimeline(branch.timeline, `branch-${branch.id}-`)
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No timeline events configured for this branch</p>
+                    <p className="text-sm">Click to configure events for this scenario path</p>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
+            </CollapsibleTimeline>
+          ))}
         </div>
       )}
 
-      {/* Selected Point Details */}
-      {selectedPoint && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">
-            Timeline Point Details - {selectedPoint.timeMinutes} minutes
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      {/* Summary Card for Critical Events */}
+      {timelineData.dataPoints.some(point => point.significance === 'critical') && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
             <div>
-              <strong className="text-blue-800">Vital Signs:</strong>
-              <ul className="mt-1 text-blue-700">
-                <li>Blood Pressure: {selectedPoint.vitalSigns.bloodPressure.systolic}/{selectedPoint.vitalSigns.bloodPressure.diastolic} mmHg</li>
-                <li>Heart Rate: {selectedPoint.vitalSigns.heartRate} bpm</li>
-                <li>Respiratory Rate: {selectedPoint.vitalSigns.respiratoryRate} breaths/min</li>
-                <li>Temperature: {selectedPoint.vitalSigns.temperature}°F</li>
-                <li>O2 Saturation: {selectedPoint.vitalSigns.oxygenSaturation}%</li>
-                <li>Pain Level: {selectedPoint.vitalSigns.painLevel}/10</li>
-              </ul>
+              <h3 className="font-medium text-red-900 mb-1">Critical Events Identified</h3>
+              <p className="text-sm text-red-700">
+                This scenario contains critical events that require immediate attention and intervention. 
+                Review the timeline carefully to understand the progression and appropriate responses.
+              </p>
             </div>
-            <div>
-              <strong className="text-blue-800">Clinical Information:</strong>
-              <div className="mt-1 text-blue-700">
-                <p><strong>Patient Response:</strong> {selectedPoint.patientResponse}</p>
-                {selectedPoint.physicalFindings.length > 0 && (
-                  <p><strong>Physical Findings:</strong> {selectedPoint.physicalFindings.join(', ')}</p>
-                )}
-                {selectedPoint.clinicalEvents.length > 0 && (
-                  <p><strong>Clinical Events:</strong> {selectedPoint.clinicalEvents.join(', ')}</p>
-                )}
-                {selectedPoint.instructorNotes && (
-                  <p><strong>Instructor Notes:</strong> {selectedPoint.instructorNotes}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Selected Branch Details */}
-      {selectedBranch && (
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <h4 className="font-medium text-purple-900 mb-2">
-            Branch Details: {selectedBranch.conditionDisplay}
-          </h4>
-          <div className="text-sm text-purple-700 space-y-2">
-            <p><strong>Condition:</strong> {selectedBranch.condition}</p>
-            <p><strong>Outcome:</strong> {selectedBranch.outcome}</p>
-            <p><strong>Probability:</strong> {selectedBranch.probability}%</p>
-            <p><strong>Timeline Points:</strong> {selectedBranch.timeline.length}</p>
           </div>
         </div>
       )}

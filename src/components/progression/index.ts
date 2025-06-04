@@ -6,7 +6,7 @@
 export { default as ProgressionScenarioCard } from './ProgressionScenarioCard';
 export { default as CreateProgressionModal } from './CreateProgressionModal';
 export { default as TimelineVisualization } from './TimelineVisualization';
-export { default as TimelineModal } from './TimelineModal';
+export { default as TimelineSummary } from './TimelineSummary';
 
 // Additional components to be implemented
 // export { default as ScenarioConfigurationForm } from './ScenarioConfigurationForm';

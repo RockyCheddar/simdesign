@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { ProgressionScenario, ScenarioType } from '@/types/progression';
+import TimelineSummary from './TimelineSummary';
+import TimelineVisualization from './TimelineVisualization';
 
 interface ProgressionScenarioCardProps {
   scenario: ProgressionScenario;
@@ -28,6 +30,11 @@ const ProgressionScenarioCard: React.FC<ProgressionScenarioCardProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(scenario.title);
   const [editDescription, setEditDescription] = useState(scenario.description);
+  
+  // Timeline expansion states
+  const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
+  const [expandedMainTimeline, setExpandedMainTimeline] = useState(false);
+  const [expandedBranches, setExpandedBranches] = useState<string[]>([]);
 
   /**
    * Handle inline title and description editing
@@ -57,6 +64,35 @@ const ProgressionScenarioCard: React.FC<ProgressionScenarioCardProps> = ({
       // Auto-hide confirmation after 3 seconds
       setTimeout(() => setShowDeleteConfirm(false), 3000);
     }
+  };
+
+  /**
+   * Handle timeline toggle
+   */
+  const handleTimelineToggle = () => {
+    setIsTimelineExpanded(!isTimelineExpanded);
+    // Call the parent's onViewTimeline for any tracking purposes
+    if (!isTimelineExpanded) {
+      onViewTimeline();
+    }
+  };
+
+  /**
+   * Handle main timeline expansion
+   */
+  const handleExpandMainTimeline = () => {
+    setExpandedMainTimeline(!expandedMainTimeline);
+  };
+
+  /**
+   * Handle branch expansion
+   */
+  const handleExpandBranch = (branchId: string) => {
+    setExpandedBranches(prev => 
+      prev.includes(branchId) 
+        ? prev.filter(id => id !== branchId)
+        : [...prev, branchId]
+    );
   };
 
   /**
@@ -214,12 +250,16 @@ const ProgressionScenarioCard: React.FC<ProgressionScenarioCardProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex space-x-2">
             <button
-              onClick={onViewTimeline}
-              className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-              title="View Timeline"
+              onClick={handleTimelineToggle}
+              className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                isTimelineExpanded
+                  ? 'text-blue-700 bg-blue-100 hover:bg-blue-200'
+                  : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+              }`}
+              title="Toggle Timeline"
             >
               <span className="mr-1">📈</span>
-              Timeline
+              {isTimelineExpanded ? 'Hide Timeline' : 'Timeline'}
             </button>
             <button
               onClick={onDuplicate}
@@ -254,6 +294,84 @@ const ProgressionScenarioCard: React.FC<ProgressionScenarioCardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Inline Timeline Section */}
+      {isTimelineExpanded && scenario.timelineData && (
+        <div className="border-t border-gray-200 bg-white">
+          <div className="px-6 py-4">
+            {/* Timeline Summary */}
+            <TimelineSummary
+              timelineData={scenario.timelineData}
+              type={scenario.type}
+              onExpandTimeline={handleExpandMainTimeline}
+              onExpandBranch={handleExpandBranch}
+              expandedTimeline={expandedMainTimeline}
+              expandedBranches={expandedBranches}
+            />
+
+            {/* Expanded Timeline Details */}
+            {expandedMainTimeline && (
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h5 className="font-medium text-gray-900">Timeline Details</h5>
+                  <button
+                    onClick={handleExpandMainTimeline}
+                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                  >
+                    Collapse
+                  </button>
+                </div>
+                <TimelineVisualization
+                  timelineData={scenario.timelineData}
+                  type={scenario.type}
+                  title={scenario.title}
+                />
+              </div>
+            )}
+
+            {/* Expanded Branch Details */}
+            {expandedBranches.map(branchId => {
+              const branch = scenario.timelineData?.branches?.find(b => b.id === branchId);
+              if (!branch) return null;
+
+              return (
+                <div key={branchId} className="mt-4 border-t border-gray-100 pt-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h5 className="font-medium text-gray-900">
+                      Branch: {branch.conditionDisplay}
+                    </h5>
+                    <button
+                      onClick={() => handleExpandBranch(branchId)}
+                      className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                    >
+                      Collapse
+                    </button>
+                  </div>
+                  {branch.timeline.length > 0 ? (
+                    <TimelineVisualization
+                      timelineData={{
+                        duration: scenario.timelineData?.duration || 30,
+                        dataPoints: branch.timeline,
+                        branches: []
+                      }}
+                      type={scenario.type}
+                      title={`${scenario.title} - ${branch.conditionDisplay}`}
+                    />
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <span className="text-4xl mb-2 block">📋</span>
+                      <p className="text-sm">No timeline events configured for this branch</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Configure events to see the timeline visualization
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

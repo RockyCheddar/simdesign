@@ -50,6 +50,11 @@ export interface ProgressionParameters {
   learningFocus: string[];
   triggerTiming?: number; // minutes from scenario start
   severity?: 'mild' | 'moderate' | 'severe';
+  // Additional fields for AI generation prompts
+  duration?: number; // scenario duration in minutes
+  decisionWindow?: number; // time window for decision making (minutes)
+  progressionRate?: 'slow' | 'moderate' | 'rapid'; // for time-based scenarios
+  evolutionFocus?: string; // focus area for time-based evolution
 }
 
 export interface ScenarioType {

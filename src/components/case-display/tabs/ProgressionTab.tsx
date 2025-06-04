@@ -5,7 +5,6 @@ import { GeneratedCaseData } from '@/types/caseCreation';
 import { ProgressionScenario, ScenarioType } from '@/types/progression';
 import InfoCard from '../components/InfoCard';
 import { ProgressionScenarioCard, CreateProgressionModal } from '../../progression';
-import TimelineModal from '../../progression/TimelineModal';
 
 interface ProgressionTabProps {
   caseData: GeneratedCaseData;
@@ -54,7 +53,6 @@ const SCENARIO_TYPES: ScenarioType[] = [
 const ProgressionTab: React.FC<ProgressionTabProps> = ({ caseData }) => {
   const [scenarios, setScenarios] = useState<ProgressionScenario[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedScenario, setSelectedScenario] = useState<ProgressionScenario | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   /**
@@ -109,6 +107,14 @@ const ProgressionTab: React.FC<ProgressionTabProps> = ({ caseData }) => {
       createdAt: new Date()
     };
     setScenarios(prev => [...prev, duplicatedScenario]);
+  }, []);
+
+  /**
+   * Handle timeline view (for tracking/analytics purposes)
+   */
+  const handleViewTimeline = useCallback((scenario: ProgressionScenario) => {
+    // This can be used for analytics/tracking when timeline is expanded
+    console.log('Timeline viewed for scenario:', scenario.title);
   }, []);
 
   /**
@@ -213,8 +219,8 @@ const ProgressionTab: React.FC<ProgressionTabProps> = ({ caseData }) => {
             </button>
           </div>
         ) : (
-          // Scenarios Grid
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          // Scenarios List - Full Width Layout
+          <div className="space-y-4">
             {scenarios.map((scenario, index) => (
               <div key={scenario.id} className="relative">
                 {/* Reorder Controls */}
@@ -242,7 +248,7 @@ const ProgressionTab: React.FC<ProgressionTabProps> = ({ caseData }) => {
                   onEdit={(updates: Partial<ProgressionScenario>) => handleEditScenario(scenario.id, updates)}
                   onDelete={() => handleDeleteScenario(scenario.id)}
                   onDuplicate={() => handleDuplicateScenario(scenario)}
-                  onViewTimeline={() => setSelectedScenario(scenario)}
+                  onViewTimeline={() => handleViewTimeline(scenario)}
                   scenarioTypeConfig={getScenarioTypeConfig(scenario.type)}
                 />
               </div>
@@ -250,15 +256,6 @@ const ProgressionTab: React.FC<ProgressionTabProps> = ({ caseData }) => {
           </div>
         )}
       </InfoCard>
-
-      {/* Timeline Modal */}
-      {selectedScenario && (
-        <TimelineModal
-          isOpen={!!selectedScenario}
-          onClose={() => setSelectedScenario(null)}
-          scenario={selectedScenario}
-        />
-      )}
 
       {/* Create Modal */}
       {isCreateModalOpen && (
