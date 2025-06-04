@@ -1,10 +1,16 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import { ProgressionScenario, ScenarioType } from '@/types/progression';
 import InfoCard from '../components/InfoCard';
 import { ProgressionScenarioCard, CreateProgressionModal } from '../../progression';
+import { 
+  saveProgressionScenario, 
+  loadProgressionScenarios, 
+  deleteProgressionScenario 
+} from '@/utils/progressionStorage';
 
 interface ProgressionTabProps {
   caseData: GeneratedCaseData;
@@ -51,30 +57,100 @@ const SCENARIO_TYPES: ScenarioType[] = [
  * Provides interface for creating, editing, and managing different types of progression scenarios
  */
 const ProgressionTab: React.FC<ProgressionTabProps> = ({ caseData }) => {
+  const params = useParams();
+  const caseId = params?.id as string;
   const [scenarios, setScenarios] = useState<ProgressionScenario[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load progression scenarios from storage when component mounts
+  useEffect(() => {
+    if (caseId) {
+      console.log('Loading progression scenarios for case:', caseId);
+      const savedScenarios = loadProgressionScenarios(caseId);
+      console.log('Loaded scenarios:', savedScenarios.length);
+      setScenarios(savedScenarios);
+    }
+  }, [caseId]);
+
+  // Listen for storage events to keep scenarios in sync
+  useEffect(() => {
+    if (!caseId) return;
+
+    const handleStorageEvents = (event: CustomEvent) => {
+      if (event.detail.caseId === caseId) {
+        console.log('Storage event detected, reloading scenarios');
+        // Add a small delay to prevent rapid multiple updates
+        setTimeout(() => {
+          const updatedScenarios = loadProgressionScenarios(caseId);
+          setScenarios(prev => {
+            // Only update if scenarios actually changed
+            if (JSON.stringify(prev.map(s => s.id)) !== JSON.stringify(updatedScenarios.map(s => s.id))) {
+              console.log('Scenarios changed, updating state');
+              return updatedScenarios;
+            }
+            console.log('Scenarios unchanged, skipping update');
+            return prev;
+          });
+        }, 50);
+      }
+    };
+
+    const handleProgressionAdded = (event: CustomEvent) => handleStorageEvents(event);
+    const handleProgressionDeleted = (event: CustomEvent) => handleStorageEvents(event);
+    const handleProgressionUpdated = (event: CustomEvent) => handleStorageEvents(event);
+
+    window.addEventListener('progressionScenarioAdded', handleProgressionAdded as EventListener);
+    window.addEventListener('progressionScenarioDeleted', handleProgressionDeleted as EventListener);
+    window.addEventListener('progressionScenarioUpdated', handleProgressionUpdated as EventListener);
+
+    return () => {
+      window.removeEventListener('progressionScenarioAdded', handleProgressionAdded as EventListener);
+      window.removeEventListener('progressionScenarioDeleted', handleProgressionDeleted as EventListener);
+      window.removeEventListener('progressionScenarioUpdated', handleProgressionUpdated as EventListener);
+    };
+  }, [caseId]);
 
   /**
    * Handle creating a new progression scenario
    */
   const handleCreateScenario = useCallback(async (scenarioData: Omit<ProgressionScenario, 'id' | 'createdAt'>) => {
+    if (!caseId) {
+      console.error('No case ID available for saving progression scenario');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const newScenario: ProgressionScenario = {
         ...scenarioData,
-        id: `scenario-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `scenario-${caseId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         createdAt: new Date()
       };
 
-      setScenarios(prev => [...prev, newScenario]);
-      setIsCreateModalOpen(false);
+      // Save to storage
+      const saved = saveProgressionScenario(caseId, newScenario);
+      if (saved) {
+        console.log('Progression scenario saved successfully');
+        // Don't update local state here - let the storage event handler do it
+        // This prevents duplicates from both local update and storage event
+        setIsCreateModalOpen(false);
+        
+        // Manually trigger a reload to ensure immediate UI update
+        setTimeout(() => {
+          const updatedScenarios = loadProgressionScenarios(caseId);
+          setScenarios(updatedScenarios);
+        }, 100);
+      } else {
+        throw new Error('Failed to save progression scenario');
+      }
     } catch (error) {
       console.error('Error creating scenario:', error);
+      // TODO: Show user error message
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [caseId]);
 
   /**
    * Handle editing an existing scenario
@@ -93,8 +169,26 @@ const ProgressionTab: React.FC<ProgressionTabProps> = ({ caseData }) => {
    * Handle deleting a scenario
    */
   const handleDeleteScenario = useCallback((scenarioId: string) => {
-    setScenarios(prev => prev.filter(scenario => scenario.id !== scenarioId));
-  }, []);
+    if (!caseId) {
+      console.error('No case ID available for deleting progression scenario');
+      return;
+    }
+
+    console.log('Deleting progression scenario:', scenarioId);
+    const deleted = deleteProgressionScenario(caseId, scenarioId);
+    if (deleted) {
+      // Don't update local state here - let the storage event handler do it
+      // This prevents duplicates and keeps everything in sync
+      
+      // Manually trigger a reload to ensure immediate UI update
+      setTimeout(() => {
+        const updatedScenarios = loadProgressionScenarios(caseId);
+        setScenarios(updatedScenarios);
+      }, 100);
+    } else {
+      console.error('Failed to delete progression scenario');
+    }
+  }, [caseId]);
 
   /**
    * Handle duplicating a scenario
@@ -117,31 +211,7 @@ const ProgressionTab: React.FC<ProgressionTabProps> = ({ caseData }) => {
     console.log('Timeline viewed for scenario:', scenario.title);
   }, []);
 
-  /**
-   * Handle moving scenario up in order
-   */
-  const handleMoveScenarioUp = useCallback((index: number) => {
-    if (index === 0) return;
-    
-    setScenarios(prev => {
-      const newScenarios = [...prev];
-      [newScenarios[index - 1], newScenarios[index]] = [newScenarios[index], newScenarios[index - 1]];
-      return newScenarios;
-    });
-  }, []);
 
-  /**
-   * Handle moving scenario down in order
-   */
-  const handleMoveScenarioDown = useCallback((index: number) => {
-    setScenarios(prev => {
-      if (index >= prev.length - 1) return prev;
-      
-      const newScenarios = [...prev];
-      [newScenarios[index], newScenarios[index + 1]] = [newScenarios[index + 1], newScenarios[index]];
-      return newScenarios;
-    });
-  }, []);
 
   /**
    * Get scenario type configuration
@@ -222,27 +292,7 @@ const ProgressionTab: React.FC<ProgressionTabProps> = ({ caseData }) => {
           // Scenarios List - Full Width Layout
           <div className="space-y-4">
             {scenarios.map((scenario, index) => (
-              <div key={scenario.id} className="relative">
-                {/* Reorder Controls */}
-                <div className="absolute -left-8 top-1/2 transform -translate-y-1/2 flex flex-col space-y-1 z-10">
-                  <button
-                    onClick={() => handleMoveScenarioUp(index)}
-                    disabled={index === 0}
-                    className="w-6 h-6 bg-white border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Move up"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    onClick={() => handleMoveScenarioDown(index)}
-                    disabled={index === scenarios.length - 1}
-                    className="w-6 h-6 bg-white border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Move down"
-                  >
-                    ↓
-                  </button>
-                </div>
-
+              <div key={scenario.id}>
                 <ProgressionScenarioCard
                   scenario={scenario}
                   onEdit={(updates: Partial<ProgressionScenario>) => handleEditScenario(scenario.id, updates)}

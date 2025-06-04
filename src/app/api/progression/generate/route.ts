@@ -63,13 +63,52 @@ export async function POST(request: NextRequest) {
 
     const responseText = response.content[0]?.type === 'text' ? response.content[0].text : '';
     
-    // Parse JSON response from AI
-    const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
-    if (!jsonMatch) {
-      throw new Error('No valid JSON found in AI response');
+    console.log('Raw AI response text (first 500 chars):', responseText.substring(0, 500));
+    
+    // Enhanced JSON parsing - try multiple formats
+    let generatedScenario: any;
+    
+    // Try 1: Standard ```json``` code block
+    let jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      try {
+        generatedScenario = JSON.parse(jsonMatch[1]);
+      } catch (error) {
+        console.log('Failed to parse JSON from code block, trying alternative methods...');
+      }
     }
-
-    const generatedScenario = JSON.parse(jsonMatch[1]);
+    
+    // Try 2: Generic ``` code block (without json specifier)
+    if (!generatedScenario) {
+      jsonMatch = responseText.match(/```\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        try {
+          generatedScenario = JSON.parse(jsonMatch[1]);
+        } catch (error) {
+          console.log('Failed to parse JSON from generic code block...');
+        }
+      }
+    }
+    
+    // Try 3: Find JSON object directly in text (look for opening brace)
+    if (!generatedScenario) {
+      const jsonStart = responseText.indexOf('{');
+      const jsonEnd = responseText.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        try {
+          const jsonStr = responseText.substring(jsonStart, jsonEnd + 1);
+          generatedScenario = JSON.parse(jsonStr);
+        } catch (error) {
+          console.log('Failed to parse JSON directly from response...');
+        }
+      }
+    }
+    
+    // If all parsing attempts failed, throw error with more context
+    if (!generatedScenario) {
+      console.error('Full AI response that failed to parse:', responseText);
+      throw new Error(`No valid JSON found in AI response. Response preview: ${responseText.substring(0, 200)}...`);
+    }
     
     // Validate and enhance the generated scenario
     const progressionScenario: Omit<ProgressionScenario, 'id' | 'createdAt'> = {
@@ -152,19 +191,7 @@ function extractPromptForType(promptsContent: string, type: string): string {
  */
 function buildContextFromCase(caseData?: GeneratedCaseData): Record<string, any> {
   if (!caseData) {
-    return {
-      fullCaseData: 'No case data provided',
-      caseTitle: 'Generic Healthcare Scenario',
-      patientDemographics: 'Adult patient',
-      chiefComplaint: 'Medical concern',
-      historyPresentIllness: 'Patient presenting with symptoms',
-      currentMedications: 'None specified',
-      baselineVitalSigns: 'Normal for age',
-      physicalExamFindings: 'To be determined',
-      labResults: 'Pending',
-      clinicalSetting: 'Healthcare facility',
-      learningObjectives: 'Educational progression scenario'
-    };
+    throw new Error('Case data is required to generate accurate progression scenarios. Please ensure the case has been fully created before generating progression scenarios.');
   }
 
   return {

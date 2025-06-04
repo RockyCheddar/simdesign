@@ -20,7 +20,8 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
   isOpen,
   onClose,
   onCreateScenario,
-  scenarioTypes
+  scenarioTypes,
+  caseData
 }) => {
   const [step, setStep] = useState<'select-type' | 'configure' | 'generating'>('select-type');
   const [selectedType, setSelectedType] = useState<ScenarioType | null>(null);
@@ -82,7 +83,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
         },
         body: JSON.stringify({
           formData,
-          caseData: undefined // TODO: Pass actual case data if available
+          caseData: caseData // Pass the actual case data from props
         }),
       });
 
@@ -91,6 +92,10 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
       
       if (!response.ok) {
         const errorData = await response.json();
+        // Handle specific case where no case data is available
+        if (errorData.details?.includes('Case data is required')) {
+          throw new Error('Unable to generate progression scenario: Complete case data is required. Please ensure this case has been fully created with patient information, presentation details, and treatment plan before generating progression scenarios.');
+        }
         throw new Error(errorData.details || errorData.error || 'Failed to generate scenario');
       }
 
@@ -276,21 +281,20 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
             </div>
 
             <div className="space-y-4">
-              {/* Title */}
+              {/* Basic Info */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Scenario Title
+                  Title
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => handleFormChange('title', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="Enter scenario title"
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description
@@ -299,7 +303,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                   value={formData.description}
                   onChange={(e) => handleFormChange('description', e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="Describe what this scenario will accomplish"
                 />
               </div>
@@ -312,7 +316,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                 <select
                   value={formData.parameters.complexity}
                   onChange={(e) => handleParameterChange('complexity', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 >
                   <option value="simple">Simple - Basic progression</option>
                   <option value="moderate">Moderate - Multiple decision points</option>
@@ -330,7 +334,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                     type="text"
                     value={formData.parameters.decisionPoint || ''}
                     onChange={(e) => handleParameterChange('decisionPoint', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     placeholder="e.g., Medication administration timing"
                   />
                 </div>
@@ -345,7 +349,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                     type="number"
                     value={formData.parameters.timelineLength || 30}
                     onChange={(e) => handleParameterChange('timelineLength', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     min="5"
                     max="120"
                   />
@@ -362,7 +366,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                       type="text"
                       value={formData.parameters.complicationType || ''}
                       onChange={(e) => handleParameterChange('complicationType', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                       placeholder="e.g., Allergic reaction, Equipment failure"
                     />
                   </div>
@@ -373,7 +377,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                     <select
                       value={formData.parameters.severity || 'moderate'}
                       onChange={(e) => handleParameterChange('severity', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     >
                       <option value="mild">Mild - Minor complication</option>
                       <option value="moderate">Moderate - Requires intervention</option>
@@ -392,7 +396,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                   type="number"
                   value={formData.parameters.duration || 30}
                   onChange={(e) => handleParameterChange('duration', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   min="10"
                   max="180"
                 />
@@ -407,7 +411,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                     type="number"
                     value={formData.parameters.decisionWindow || 5}
                     onChange={(e) => handleParameterChange('decisionWindow', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     min="1"
                     max="30"
                   />
@@ -424,7 +428,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                     <select
                       value={formData.parameters.progressionRate || 'moderate'}
                       onChange={(e) => handleParameterChange('progressionRate', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     >
                       <option value="slow">Slow - Gradual progression over time</option>
                       <option value="moderate">Moderate - Standard disease progression</option>
@@ -439,7 +443,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                       type="text"
                       value={formData.parameters.evolutionFocus || ''}
                       onChange={(e) => handleParameterChange('evolutionFocus', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                       placeholder="e.g., Respiratory failure, Sepsis progression"
                     />
                   </div>
@@ -455,7 +459,7 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
                     type="number"
                     value={formData.parameters.triggerTiming || 10}
                     onChange={(e) => handleParameterChange('triggerTiming', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     min="1"
                     max="60"
                   />
@@ -513,9 +517,9 @@ const CreateProgressionModal: React.FC<CreateProgressionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+    <div className="fixed inset-0 bg-white bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white bg-opacity-85 backdrop-blur-md rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-200">
+        <div className="sticky top-0 bg-white bg-opacity-85 backdrop-blur-md border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">
               Create New Progression Scenario

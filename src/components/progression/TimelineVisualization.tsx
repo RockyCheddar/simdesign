@@ -12,7 +12,17 @@ import {
   AlertTriangle, 
   XCircle, 
   TrendingUp, 
-  TrendingDown
+  TrendingDown,
+  Heart,
+  Pill,
+  TestTube,
+  Thermometer,
+  Zap,
+  Eye,
+  Scissors,
+  Monitor,
+  ShieldAlert,
+  Plus
 } from 'lucide-react';
 import { TimelineData, TimelinePoint, ConditionalBranch } from '@/types/progression';
 import { VitalSigns } from '@/types';
@@ -114,68 +124,150 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
   };
 
   /**
-   * Get event icon based on significance and clinical events
+   * COMPREHENSIVE MEDICAL EVENT ICON SYSTEM
    */
   const getEventIcon = (point: TimelinePoint) => {
     const events = point.clinicalEvents.join(' ').toLowerCase();
+    const findings = point.physicalFindings.join(' ').toLowerCase();
+    const combined = `${events} ${findings}`.toLowerCase();
     
-    if (events.includes('arrival') || events.includes('admission')) {
-      return <User className="h-4 w-4" />;
+    // Vital Signs & Monitoring
+    if (combined.includes('vital') || combined.includes('monitoring') || combined.includes('observation')) {
+      return <Activity className="h-4 w-4 text-black" />;
     }
-    if (events.includes('assessment') || events.includes('examination')) {
-      return <Clipboard className="h-4 w-4" />;
+    
+    // Cardiac/ECG Related
+    if (combined.includes('ecg') || combined.includes('cardiac') || combined.includes('heart') || combined.includes('rhythm')) {
+      return <Heart className="h-4 w-4 text-black" />;
     }
-    if (events.includes('vital') || events.includes('monitoring')) {
-      return <Activity className="h-4 w-4" />;
+    
+    // Medication Administration
+    if (combined.includes('medication') || combined.includes('drug') || combined.includes('administered') || 
+        combined.includes('dose') || combined.includes('injection') || combined.includes('pill')) {
+      return <Pill className="h-4 w-4 text-black" />;
     }
-    if (events.includes('intervention') || events.includes('medication') || events.includes('treatment')) {
-      return <Stethoscope className="h-4 w-4" />;
+    
+    // Lab Work & Tests
+    if (combined.includes('blood') || combined.includes('lab') || combined.includes('test') || 
+        combined.includes('sample') || combined.includes('culture') || combined.includes('biopsy')) {
+      return <TestTube className="h-4 w-4 text-black" />;
     }
+    
+    // Physical Assessment/Examination
+    if (combined.includes('assessment') || combined.includes('examination') || combined.includes('auscultation') ||
+        combined.includes('palpation') || combined.includes('inspection')) {
+      return <Stethoscope className="h-4 w-4 text-black" />;
+    }
+    
+    // Temperature/Fever Related
+    if (combined.includes('temperature') || combined.includes('fever') || combined.includes('hypothermia') ||
+        combined.includes('thermal')) {
+      return <Thermometer className="h-4 w-4 text-black" />;
+    }
+    
+    // Emergency/Resuscitation
+    if (combined.includes('emergency') || combined.includes('resuscitation') || combined.includes('code') ||
+        combined.includes('crash') || combined.includes('arrest')) {
+      return <Zap className="h-4 w-4 text-black" />;
+    }
+    
+    // Neurological Assessment
+    if (combined.includes('neurological') || combined.includes('consciousness') || combined.includes('pupils') ||
+        combined.includes('glasgow') || combined.includes('cognitive')) {
+      return <Eye className="h-4 w-4 text-black" />;
+    }
+    
+    // Procedures/Surgery
+    if (combined.includes('procedure') || combined.includes('surgery') || combined.includes('incision') ||
+        combined.includes('suture') || combined.includes('catheter')) {
+      return <Scissors className="h-4 w-4 text-black" />;
+    }
+    
+    // Patient Deterioration
+    if (combined.includes('deterioration') || combined.includes('worse') || combined.includes('decline') ||
+        combined.includes('unstable')) {
+      return <TrendingDown className="h-4 w-4 text-black" />;
+    }
+    
+    // Patient Improvement
+    if (combined.includes('improvement') || combined.includes('better') || combined.includes('stable') ||
+        combined.includes('recovery') || combined.includes('responding')) {
+      return <TrendingUp className="h-4 w-4 text-black" />;
+    }
+    
+    // Monitoring Equipment
+    if (combined.includes('monitor') || combined.includes('telemetry') || combined.includes('equipment')) {
+      return <Monitor className="h-4 w-4 text-black" />;
+    }
+    
+    // Critical Alerts
+    if (combined.includes('alert') || combined.includes('alarm') || combined.includes('warning')) {
+      return <ShieldAlert className="h-4 w-4 text-black" />;
+    }
+    
+    // Critical Significance Override
     if (point.significance === 'critical') {
-      return <XCircle className="h-4 w-4" />;
-    }
-    if (events.includes('deterioration') || events.includes('worse')) {
-      return <TrendingDown className="h-4 w-4" />;
-    }
-    if (events.includes('improvement') || events.includes('better')) {
-      return <TrendingUp className="h-4 w-4" />;
+      return <ShieldAlert className="h-4 w-4 text-black" />;
     }
     
-    return <Clock className="h-4 w-4" />;
+    // Admission/Arrival
+    if (combined.includes('arrival') || combined.includes('admission') || combined.includes('transfer')) {
+      return <User className="h-4 w-4 text-black" />;
+    }
+    
+    // Medical Intervention
+    if (combined.includes('intervention') || combined.includes('treatment') || combined.includes('therapy')) {
+      return <Plus className="h-4 w-4 text-black" />;
+    }
+    
+    // Default - General Clinical Event
+    return <Clipboard className="h-4 w-4 text-black" />;
   };
 
   /**
-   * Get severity color classes
+   * GREEN TO RED SEVERITY SPECTRUM - LIGHT SHADES WITH MATCHING CIRCLES
    */
   const getSeverityColor = (significance: string) => {
     switch (significance) {
       case 'normal':
         return {
+          // Light green spectrum
           border: 'border-green-300',
-          bg: 'bg-green-100',
+          bg: 'bg-green-50',
           text: 'text-green-800',
-          badge: 'bg-green-100 text-green-800 border-green-200'
+          badge: 'bg-green-100 text-green-800 border-green-300 rounded-full',
+          circle: 'bg-green-300',  // Same as border
+          ringColor: 'ring-green-300'
         };
       case 'concerning':
         return {
-          border: 'border-yellow-300',
-          bg: 'bg-yellow-100',
+          // Light yellow-orange spectrum  
+          border: 'border-yellow-400',
+          bg: 'bg-yellow-50',
           text: 'text-yellow-800',
-          badge: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+          badge: 'bg-yellow-100 text-yellow-800 border-yellow-400 rounded-full',
+          circle: 'bg-yellow-400',  // Same as border
+          ringColor: 'ring-yellow-400'
         };
       case 'critical':
         return {
-          border: 'border-red-300',
-          bg: 'bg-red-100',
+          // Light red spectrum
+          border: 'border-red-400',
+          bg: 'bg-red-50',
           text: 'text-red-800',
-          badge: 'bg-red-100 text-red-800 border-red-200'
+          badge: 'bg-red-100 text-red-800 border-red-400 rounded-full',
+          circle: 'bg-red-400',  // Same as border
+          ringColor: 'ring-red-400'
         };
       default:
         return {
-          border: 'border-gray-300',
-          bg: 'bg-gray-100',
-          text: 'text-gray-800',
-          badge: 'bg-gray-100 text-gray-800 border-gray-200'
+          // Neutral gray
+          border: 'border-slate-300',
+          bg: 'bg-slate-50',
+          text: 'text-slate-800',
+          badge: 'bg-slate-100 text-slate-800 border-slate-300 rounded-full',
+          circle: 'bg-slate-300',  // Same as border
+          ringColor: 'ring-slate-300'
         };
     }
   };
@@ -217,13 +309,62 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
   };
 
   /**
-   * Get score color
+   * Get score color - GREEN TO RED SPECTRUM FOR MEDICAL SCORING
    */
   const getScoreColor = (score: number) => {
-    if (score <= 2) return "bg-green-100 text-green-800";
-    if (score <= 4) return "bg-yellow-100 text-yellow-800";
-    if (score <= 6) return "bg-orange-100 text-orange-800";
-    return "bg-red-100 text-red-800";
+    if (score <= 2) return "bg-green-100 text-green-800 border-green-300 rounded-full";
+    if (score <= 4) return "bg-yellow-100 text-yellow-800 border-yellow-400 rounded-full";
+    if (score <= 6) return "bg-orange-100 text-orange-800 border-orange-400 rounded-full";
+    return "bg-red-100 text-red-800 border-red-400 rounded-full";
+  };
+
+  /**
+   * Determine event type for smart content display
+   */
+  const getEventType = (point: TimelinePoint) => {
+    const events = point.clinicalEvents.join(' ').toLowerCase();
+    
+    if (events.includes('blood') || events.includes('lab') || events.includes('test') || events.includes('ordered')) {
+      return 'lab_work';
+    }
+    if (events.includes('medication') || events.includes('drug') || events.includes('administered')) {
+      return 'medication';
+    }
+    if (events.includes('assessment') || events.includes('examination') || events.includes('evaluation')) {
+      return 'assessment';
+    }
+    if (events.includes('procedure') || events.includes('intervention') || events.includes('treatment')) {
+      return 'procedure';
+    }
+    if (events.includes('monitoring') || events.includes('vital') || events.includes('observation')) {
+      return 'monitoring';
+    }
+    return 'clinical_event';
+  };
+
+  /**
+   * Check if event should show medical score
+   */
+  const shouldShowMedicalScore = (point: TimelinePoint) => {
+    const eventType = getEventType(point);
+    const score = calculateSeverityScore(point.vitalSigns);
+    
+    // Only show scores for assessments and monitoring with actual vital signs
+    return (eventType === 'assessment' || eventType === 'monitoring') && score > 0;
+  };
+
+  /**
+   * Check if event should show vital signs
+   */
+  const shouldShowVitalSigns = (point: TimelinePoint) => {
+    const eventType = getEventType(point);
+    
+    // Show vital signs for assessments, monitoring, and clinical events
+    // Hide for lab work and procedures unless critical
+    return eventType === 'assessment' || 
+           eventType === 'monitoring' || 
+           eventType === 'clinical_event' ||
+           (point.significance === 'critical');
   };
 
   /**
@@ -242,11 +383,11 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
             
             return (
               <div key={`${prefix}${index}`} className="relative flex items-start gap-4">
-                {/* Timeline dot */}
+                {/* Timeline dot - MATCHING INNER/OUTER SEVERITY COLORS */}
                 <div
                   className={`relative z-10 flex items-center justify-center w-16 h-16 rounded-full border-4 bg-white ${severityColors.border}`}
                 >
-                  <div className={`p-2 rounded-full ${severityColors.bg}`}>
+                  <div className={`p-2.5 rounded-full ${severityColors.circle}`}>
                     {getEventIcon(point)}
                   </div>
                 </div>
@@ -259,14 +400,19 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded border">
+                        {/* BLACK BOLD TIMING PILL - LARGER SIZE */}
+                        <span className="text-sm font-bold bg-black text-white px-3 py-1 rounded-full">
                           {formatTime(point.timeMinutes)}
                         </span>
-                        <span className={`text-xs px-2 py-1 rounded border ${getScoreColor(severityScore)}`}>
-                          Score: {severityScore}
-                        </span>
+                        {/* CONDITIONAL MEDICAL SCORE - ONLY FOR RELEVANT EVENTS */}
+                        {shouldShowMedicalScore(point) && (
+                          <span className={`text-xs font-medium px-2 py-1 border ${getScoreColor(severityScore)}`}>
+                            NEWS2: {severityScore}
+                          </span>
+                        )}
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded border ${severityColors.badge}`}>
+                      {/* CIRCULAR SEVERITY PILL */}
+                      <span className={`text-xs font-medium px-3 py-1 border ${severityColors.badge}`}>
                         {point.significance.toUpperCase()}
                       </span>
                     </div>
@@ -276,45 +422,91 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
                     </h3>
                     <p className="text-sm text-gray-600 mb-3">{point.patientResponse}</p>
 
-                    {/* Physical Findings */}
-                    {point.physicalFindings.length > 0 && (
-                      <p className="text-sm text-gray-600 mb-3">
-                        <strong>Findings:</strong> {point.physicalFindings.join(', ')}
-                      </p>
-                    )}
+                    {/* Smart Content Display Based on Event Type */}
+                    {getEventType(point) === 'lab_work' ? (
+                      /* Lab Work - Show findings inline, no vital signs */
+                      point.physicalFindings.length > 0 && (
+                        <div className="bg-blue-50 rounded-md p-3 mt-3">
+                          <h4 className="text-xs font-medium text-blue-800 mb-2">LAB RESULTS</h4>
+                          <p className="text-sm text-gray-800">
+                            {point.physicalFindings.join(', ')}
+                          </p>
+                        </div>
+                      )
+                    ) : getEventType(point) === 'medication' ? (
+                      /* Medication - Show response and minimal details */
+                      <>
+                        {point.physicalFindings.length > 0 && (
+                          <p className="text-sm text-gray-800 mb-3">
+                            <strong>Administration Notes:</strong> {point.physicalFindings.join(', ')}
+                          </p>
+                        )}
+                        {point.significance === 'critical' && shouldShowVitalSigns(point) && (
+                          <div className="bg-red-50 rounded-md p-3 mt-3">
+                            <h4 className="text-xs font-medium text-red-800 mb-2">⚠️ CRITICAL VITAL SIGNS</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                              <div>
+                                <span className="text-gray-800 font-medium">BP:</span>{' '}
+                                <span className="font-bold text-gray-900">
+                                  {point.vitalSigns.bloodPressure.systolic}/{point.vitalSigns.bloodPressure.diastolic}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-800 font-medium">HR:</span>{' '}
+                                <span className="font-bold text-gray-900">{point.vitalSigns.heartRate} bpm</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-800 font-medium">SpO2:</span>{' '}
+                                <span className="font-bold text-gray-900">{point.vitalSigns.oxygenSaturation}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      /* Assessment/Monitoring/Clinical Events - Full display */
+                      <>
+                        {point.physicalFindings.length > 0 && (
+                          <p className="text-sm text-gray-800 mb-3">
+                            <strong>Findings:</strong> {point.physicalFindings.join(', ')}
+                          </p>
+                        )}
 
-                    {/* Vital signs */}
-                    <div className="bg-gray-50 rounded-md p-3 mt-3">
-                      <h4 className="text-xs font-medium text-gray-700 mb-2">VITAL SIGNS</h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                        <div>
-                          <span className="text-gray-500">BP:</span>{' '}
-                          <span className="font-medium">
-                            {point.vitalSigns.bloodPressure.systolic}/{point.vitalSigns.bloodPressure.diastolic}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">HR:</span>{' '}
-                          <span className="font-medium">{point.vitalSigns.heartRate} bpm</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">RR:</span>{' '}
-                          <span className="font-medium">{point.vitalSigns.respiratoryRate}/min</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Temp:</span>{' '}
-                          <span className="font-medium">{point.vitalSigns.temperature}°F</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">SpO2:</span>{' '}
-                          <span className="font-medium">{point.vitalSigns.oxygenSaturation}%</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Pain:</span>{' '}
-                          <span className="font-medium">{point.vitalSigns.painLevel}/10</span>
-                        </div>
-                      </div>
-                    </div>
+                        {shouldShowVitalSigns(point) && (
+                          <div className="bg-gray-50 rounded-md p-3 mt-3">
+                            <h4 className="text-xs font-medium text-gray-800 mb-2">VITAL SIGNS</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                              <div>
+                                <span className="text-gray-800 font-medium">BP:</span>{' '}
+                                <span className="font-bold text-gray-900">
+                                  {point.vitalSigns.bloodPressure.systolic}/{point.vitalSigns.bloodPressure.diastolic}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-800 font-medium">HR:</span>{' '}
+                                <span className="font-bold text-gray-900">{point.vitalSigns.heartRate} bpm</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-800 font-medium">RR:</span>{' '}
+                                <span className="font-bold text-gray-900">{point.vitalSigns.respiratoryRate}/min</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-800 font-medium">Temp:</span>{' '}
+                                <span className="font-bold text-gray-900">{point.vitalSigns.temperature}°F</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-800 font-medium">SpO2:</span>{' '}
+                                <span className="font-bold text-gray-900">{point.vitalSigns.oxygenSaturation}%</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-800 font-medium">Pain:</span>{' '}
+                                <span className="font-bold text-gray-900">{point.vitalSigns.painLevel}/10</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
 
                     {/* Instructor Notes */}
                     {point.instructorNotes && (

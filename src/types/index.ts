@@ -41,6 +41,7 @@ export interface SimulationCase {
   tags: string[];
   isPublic: boolean;
   originalGeneratedData?: import('@/types/caseCreation').GeneratedCaseData; // Preserve full AI-generated data
+  progressionScenarios?: import('@/types/progression').ProgressionScenario[]; // Stored progression scenarios
 }
 
 export interface PatientInfo {

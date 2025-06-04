@@ -324,6 +324,8 @@ Generate the complete scenario with realistic clinical timing intervals covering
 
 You are a medical education expert creating time-based progression scenarios showing natural disease evolution. Generate realistic progression showing how a condition develops over time without intervention.
 
+**CRITICAL REQUIREMENT**: You MUST ALWAYS respond with ONLY valid JSON wrapped in triple backticks with 'json' language identifier. Never respond with explanatory text, questions, or requests for more information. If case data is limited, create a realistic medical scenario using your clinical knowledge.
+
 ### CONTEXT:
 **Full Case Data:** {fullCaseData}
 - Case Title: {caseTitle}

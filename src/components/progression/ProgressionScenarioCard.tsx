@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { ProgressionScenario, ScenarioType } from '@/types/progression';
-import TimelineSummary from './TimelineSummary';
 import TimelineVisualization from './TimelineVisualization';
 
 interface ProgressionScenarioCardProps {
@@ -31,10 +30,8 @@ const ProgressionScenarioCard: React.FC<ProgressionScenarioCardProps> = ({
   const [editTitle, setEditTitle] = useState(scenario.title);
   const [editDescription, setEditDescription] = useState(scenario.description);
   
-  // Timeline expansion states
+  // Timeline expansion state
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
-  const [expandedMainTimeline, setExpandedMainTimeline] = useState(false);
-  const [expandedBranches, setExpandedBranches] = useState<string[]>([]);
 
   /**
    * Handle inline title and description editing
@@ -77,23 +74,7 @@ const ProgressionScenarioCard: React.FC<ProgressionScenarioCardProps> = ({
     }
   };
 
-  /**
-   * Handle main timeline expansion
-   */
-  const handleExpandMainTimeline = () => {
-    setExpandedMainTimeline(!expandedMainTimeline);
-  };
 
-  /**
-   * Handle branch expansion
-   */
-  const handleExpandBranch = (branchId: string) => {
-    setExpandedBranches(prev => 
-      prev.includes(branchId) 
-        ? prev.filter(id => id !== branchId)
-        : [...prev, branchId]
-    );
-  };
 
   /**
    * Format creation date
@@ -125,250 +106,265 @@ const ProgressionScenarioCard: React.FC<ProgressionScenarioCardProps> = ({
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
-      {/* Header with Type Indicator */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center">
-            <span className="text-2xl mr-3">{scenarioTypeConfig.icon}</span>
-            <div>
-              <span className="text-sm font-medium text-blue-700 bg-blue-100 px-2 py-1 rounded-full">
-                {scenarioTypeConfig.label}
-              </span>
-              {scenario.isGenerated && (
-                <span className="ml-2 text-xs font-medium text-purple-700 bg-purple-100 px-2 py-1 rounded-full">
-                  AI Generated
-                </span>
+      {/* Condensed Header */}
+      <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <span className="text-xl flex-shrink-0 mt-0.5">{scenarioTypeConfig.icon}</span>
+            <div className="flex-1 min-w-0">
+              {/* Title */}
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded px-2 py-1 w-full"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveEdit();
+                    if (e.key === 'Escape') handleCancelEdit();
+                  }}
+                  autoFocus
+                />
+              ) : (
+                <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer truncate" onClick={() => setIsEditing(true)}>
+                  {scenario.title}
+                </h3>
               )}
+              
+              {/* Badges */}
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+                  {scenarioTypeConfig.label}
+                </span>
+                {scenario.isGenerated && (
+                  <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                    AI Generated
+                  </span>
+                )}
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${getComplexityBadgeStyle(scenario.parameters.complexity)}`}>
+                  {scenario.parameters.complexity}
+                </span>
+              </div>
             </div>
           </div>
-          <span className={`text-xs font-medium px-2 py-1 rounded-full border ${getComplexityBadgeStyle(scenario.parameters.complexity)}`}>
-            {scenario.parameters.complexity}
-          </span>
+          
+          {/* Timeline Toggle Button - Prominent Position */}
+          <button
+            onClick={handleTimelineToggle}
+            className={`ml-3 inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 flex-shrink-0 ${
+              isTimelineExpanded
+                ? 'text-white bg-blue-600 hover:bg-blue-700 shadow-md'
+                : 'text-blue-600 bg-white hover:bg-blue-50 border border-blue-200 hover:border-blue-300'
+            }`}
+            title="Toggle Timeline View"
+          >
+            <span className="mr-1.5">{isTimelineExpanded ? '📊' : '📈'}</span>
+            {isTimelineExpanded ? 'Hide Timeline' : 'View Timeline'}
+          </button>
         </div>
-        
-        {/* Title */}
-        {isEditing ? (
-          <input
-            type="text"
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            className="text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded px-2 py-1 w-full"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSaveEdit();
-              if (e.key === 'Escape') handleCancelEdit();
-            }}
-            autoFocus
-          />
-        ) : (
-          <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer" onClick={() => setIsEditing(true)}>
-            {scenario.title}
-          </h3>
-        )}
       </div>
 
-      {/* Content */}
-      <div className="p-6">
+      {/* Condensed Content */}
+      <div className="px-4 py-3">
         {/* Description */}
         {isEditing ? (
-          <textarea
-            value={editDescription}
-            onChange={(e) => setEditDescription(e.target.value)}
-            className="text-gray-600 bg-white border border-gray-300 rounded px-2 py-1 w-full h-20 resize-none"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && e.ctrlKey) handleSaveEdit();
-              if (e.key === 'Escape') handleCancelEdit();
-            }}
-          />
+          <div className="mb-3">
+            <textarea
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              className="text-gray-600 bg-white border border-gray-300 rounded px-2 py-1 w-full h-16 resize-none text-sm"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.ctrlKey) handleSaveEdit();
+                if (e.key === 'Escape') handleCancelEdit();
+              }}
+            />
+            <div className="flex justify-end space-x-2 mt-2">
+              <button
+                onClick={handleCancelEdit}
+                className="px-3 py-1 text-xs text-gray-600 hover:text-gray-800 border border-gray-300 rounded transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors duration-200"
+              >
+                Save
+              </button>
+            </div>
+          </div>
         ) : (
-          <p className="text-gray-600 mb-4 hover:text-gray-800 cursor-pointer" onClick={() => setIsEditing(true)}>
+          <p className="text-gray-600 text-sm mb-3 hover:text-gray-800 cursor-pointer" 
+             style={{
+               display: '-webkit-box',
+               WebkitBoxOrient: 'vertical',
+               WebkitLineClamp: 2,
+               overflow: 'hidden'
+             }}
+             onClick={() => setIsEditing(true)}>
             {scenario.description}
           </p>
         )}
 
-        {/* Edit Controls */}
-        {isEditing && (
-          <div className="flex justify-end space-x-2 mb-4">
-            <button
-              onClick={handleCancelEdit}
-              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded transition-colors duration-200"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveEdit}
-              className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors duration-200"
-            >
-              Save
-            </button>
-          </div>
-        )}
-
-        {/* Learning Focus Tags */}
-        {scenario.parameters.learningFocus && scenario.parameters.learningFocus.length > 0 && (
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-2">
-              {scenario.parameters.learningFocus.map((focus, index) => (
-                <span
-                  key={index}
-                  className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
-                >
-                  {focus}
+        {/* Condensed Metrics Row - SEVERITY-BASED COLORS */}
+        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+          <div className="flex items-center gap-4">
+            {scenario.timelineData && (
+              <>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-gray-600 rounded-full"></span>
+                  {scenario.timelineData.duration}min
                 </span>
-              ))}
-            </div>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                  {scenario.timelineData.dataPoints.length} events
+                </span>
+                {scenario.timelineData.branches && scenario.timelineData.branches.length > 0 && (
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                    {scenario.timelineData.branches.length} branches
+                  </span>
+                )}
+              </>
+            )}
           </div>
-        )}
+          <span>{formatDate(scenario.createdAt)}</span>
+        </div>
 
-        {/* Timeline Info */}
-        {scenario.timelineData && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Timeline Duration:</span>
-              <span className="font-medium text-gray-900">{scenario.timelineData.duration} minutes</span>
-            </div>
-            <div className="flex items-center justify-between text-sm mt-1">
-              <span className="text-gray-600">Data Points:</span>
-              <span className="font-medium text-gray-900">{scenario.timelineData.dataPoints.length}</span>
-            </div>
-            {scenario.timelineData.branches && scenario.timelineData.branches.length > 0 && (
-              <div className="flex items-center justify-between text-sm mt-1">
-                <span className="text-gray-600">Branches:</span>
-                <span className="font-medium text-gray-900">{scenario.timelineData.branches.length}</span>
-              </div>
+        {/* Learning Focus Tags - Condensed */}
+        {scenario.parameters.learningFocus && scenario.parameters.learningFocus.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {scenario.parameters.learningFocus.slice(0, 3).map((focus, index) => (
+              <span
+                key={index}
+                className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full"
+              >
+                {focus}
+              </span>
+            ))}
+            {scenario.parameters.learningFocus.length > 3 && (
+              <span className="text-xs text-gray-500 px-2 py-0.5">
+                +{scenario.parameters.learningFocus.length - 3} more
+              </span>
             )}
           </div>
         )}
 
-        {/* Metadata */}
-        <div className="text-xs text-gray-500 mb-4">
-          Created {formatDate(scenario.createdAt)}
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="bg-gray-50 px-6 py-4 border-t border-gray-100">
-        <div className="flex items-center justify-between">
-          <div className="flex space-x-2">
-            <button
-              onClick={handleTimelineToggle}
-              className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                isTimelineExpanded
-                  ? 'text-blue-700 bg-blue-100 hover:bg-blue-200'
-                  : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-              }`}
-              title="Toggle Timeline"
-            >
-              <span className="mr-1">📈</span>
-              {isTimelineExpanded ? 'Hide Timeline' : 'Timeline'}
-            </button>
+        {/* Condensed Action Row */}
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <div className="flex space-x-1">
             <button
               onClick={onDuplicate}
-              className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors duration-200"
               title="Duplicate Scenario"
             >
               <span className="mr-1">📋</span>
               Duplicate
             </button>
-          </div>
-          <div className="flex space-x-2">
             <button
               onClick={() => setIsEditing(true)}
-              className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors duration-200"
               title="Edit Scenario"
             >
               <span className="mr-1">✏️</span>
               Edit
             </button>
-            <button
-              onClick={handleDeleteClick}
-              className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                showDeleteConfirm
-                  ? 'text-white bg-red-600 hover:bg-red-700'
-                  : 'text-red-600 hover:text-red-700 hover:bg-red-50'
-              }`}
-              title={showDeleteConfirm ? 'Click again to confirm deletion' : 'Delete Scenario'}
-            >
-              <span className="mr-1">🗑️</span>
-              {showDeleteConfirm ? 'Confirm Delete' : 'Delete'}
-            </button>
           </div>
+          <button
+            onClick={handleDeleteClick}
+            className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded transition-colors duration-200 ${
+              showDeleteConfirm
+                ? 'text-white bg-red-600 hover:bg-red-700'
+                : 'text-red-600 hover:text-red-700 hover:bg-red-50'
+            }`}
+            title={showDeleteConfirm ? 'Click again to confirm deletion' : 'Delete Scenario'}
+          >
+            <span className="mr-1">🗑️</span>
+            {showDeleteConfirm ? 'Confirm' : 'Delete'}
+          </button>
         </div>
       </div>
 
-      {/* Inline Timeline Section */}
+      {/* Streamlined Timeline Section */}
       {isTimelineExpanded && scenario.timelineData && (
-        <div className="border-t border-gray-200 bg-white">
-          <div className="px-6 py-4">
-            {/* Timeline Summary */}
-            <TimelineSummary
-              timelineData={scenario.timelineData}
-              type={scenario.type}
-              onExpandTimeline={handleExpandMainTimeline}
-              onExpandBranch={handleExpandBranch}
-              expandedTimeline={expandedMainTimeline}
-              expandedBranches={expandedBranches}
-            />
-
-            {/* Expanded Timeline Details */}
-            {expandedMainTimeline && (
-              <div className="mt-4 border-t border-gray-100 pt-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h5 className="font-medium text-gray-900">Timeline Details</h5>
-                  <button
-                    onClick={handleExpandMainTimeline}
-                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
-                  >
-                    Collapse
-                  </button>
-                </div>
-                <TimelineVisualization
-                  timelineData={scenario.timelineData}
-                  type={scenario.type}
-                  title={scenario.title}
-                />
+        <div className="border-t border-gray-200 bg-gray-50">
+          <div className="px-4 py-4">
+            {/* Direct Timeline Visualization - No additional clicks needed */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                  <span className="text-lg">{scenarioTypeConfig.icon}</span>
+                  Timeline: {scenario.title}
+                </h4>
+                                 <div className="flex items-center gap-2 text-xs text-gray-500">
+                   <span className="flex items-center gap-1">
+                     <span className="w-2 h-2 bg-gray-600 rounded-full"></span>
+                     {scenario.timelineData.duration}min
+                   </span>
+                   <span className="flex items-center gap-1">
+                     <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                     {scenario.timelineData.dataPoints.length} events
+                   </span>
+                   {scenario.timelineData.branches && scenario.timelineData.branches.length > 0 && (
+                     <span className="flex items-center gap-1">
+                       <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                       {scenario.timelineData.branches.length} branches
+                     </span>
+                   )}
+                 </div>
               </div>
-            )}
+              
+              {/* Main Timeline - Always Visible When Timeline is Expanded */}
+              <TimelineVisualization
+                timelineData={scenario.timelineData}
+                type={scenario.type}
+                title={scenario.title}
+              />
 
-            {/* Expanded Branch Details */}
-            {expandedBranches.map(branchId => {
-              const branch = scenario.timelineData?.branches?.find(b => b.id === branchId);
-              if (!branch) return null;
-
-              return (
-                <div key={branchId} className="mt-4 border-t border-gray-100 pt-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h5 className="font-medium text-gray-900">
-                      Branch: {branch.conditionDisplay}
-                    </h5>
-                    <button
-                      onClick={() => handleExpandBranch(branchId)}
-                      className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
-                    >
-                      Collapse
-                    </button>
-                  </div>
-                  {branch.timeline.length > 0 ? (
-                    <TimelineVisualization
-                      timelineData={{
-                        duration: scenario.timelineData?.duration || 30,
-                        dataPoints: branch.timeline,
-                        branches: []
-                      }}
-                      type={scenario.type}
-                      title={`${scenario.title} - ${branch.conditionDisplay}`}
-                    />
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <span className="text-4xl mb-2 block">📋</span>
-                      <p className="text-sm">No timeline events configured for this branch</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Configure events to see the timeline visualization
-                      </p>
+              {/* Conditional Branches - Auto-expanded if they exist */}
+              {scenario.type === 'conditional' && scenario.timelineData.branches && scenario.timelineData.branches.length > 0 && (
+                <div className="mt-6 space-y-4">
+                  <h5 className="font-medium text-gray-900 border-b border-gray-200 pb-2">
+                    Scenario Branches ({scenario.timelineData.branches.length})
+                  </h5>
+                  {scenario.timelineData.branches.map((branch) => (
+                    <div key={branch.id} className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h6 className="font-medium text-gray-800">
+                          {branch.conditionDisplay}
+                        </h6>
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className={`px-2 py-1 rounded-full border ${
+                            branch.outcome === 'positive' ? 'bg-green-100 text-green-800 border-green-200' :
+                            branch.outcome === 'negative' ? 'bg-red-100 text-red-800 border-red-200' :
+                            'bg-gray-100 text-gray-800 border-gray-200'
+                          }`}>
+                            {branch.outcome}
+                          </span>
+                          <span className="text-gray-500">{branch.probability}%</span>
+                        </div>
+                      </div>
+                      {branch.timeline.length > 0 ? (
+                        <TimelineVisualization
+                          timelineData={{
+                            duration: scenario.timelineData?.duration || 30,
+                            dataPoints: branch.timeline,
+                            branches: []
+                          }}
+                          type={scenario.type}
+                          title={`${scenario.title} - ${branch.conditionDisplay}`}
+                        />
+                      ) : (
+                        <div className="text-center py-6 text-gray-500">
+                          <span className="text-2xl mb-2 block">📋</span>
+                          <p className="text-sm">No timeline events configured for this branch</p>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
-              );
-            })}
+              )}
+            </div>
           </div>
         </div>
       )}
