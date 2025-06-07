@@ -3,17 +3,35 @@
 import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
+import BackgroundSection from '../components/BackgroundSection';
 import InfoCard, { DataRow } from '../components/InfoCard';
 
 interface OverviewTabProps {
   caseData: GeneratedCaseData;
+  onCaseDataUpdate?: (updatedCaseData: GeneratedCaseData) => void;
 }
 
-const OverviewTab: React.FC<OverviewTabProps> = ({ caseData }) => {
+const OverviewTab: React.FC<OverviewTabProps> = ({ caseData, onCaseDataUpdate }) => {
   const [onDemandContent, setOnDemandContent] = useState<Record<string, string>>({});
 
   const handleContentGenerated = (sectionId: string, content: string) => {
     setOnDemandContent(prev => ({ ...prev, [sectionId]: content }));
+  };
+
+  const handleBackgroundGenerated = (backgroundData: any) => {
+    // Update the case data with the new background information
+    const updatedCaseData = {
+      ...caseData,
+      onDemandOptions: {
+        ...caseData.onDemandOptions,
+        'case-background': JSON.stringify(backgroundData)
+      }
+    };
+    
+    // Call the parent callback if available
+    if (onCaseDataUpdate) {
+      onCaseDataUpdate(updatedCaseData);
+    }
   };
 
   return (
@@ -132,14 +150,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ caseData }) => {
       )}
 
       {/* On-Demand Content Sections */}
-      <OnDemandSection
-        id="case-background"
-        title="Additional Case Background"
-        description="Generate additional context and background information for this case"
-        content={onDemandContent['case-background']}
-        onContentGenerated={handleContentGenerated}
-        prompt="Generate additional context and background information for this healthcare simulation case"
-      />
+      <BackgroundSection caseData={caseData} onContentGenerated={handleBackgroundGenerated} />
 
       <OnDemandSection
         id="pre-simulation-briefing"

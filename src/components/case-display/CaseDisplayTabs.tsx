@@ -153,14 +153,21 @@ const convertSimulationCaseToGenerated = (simCase: SimulationCase): GeneratedCas
 
 const CaseDisplayTabs: React.FC<CaseDisplayTabsProps> = ({ caseData, caseTitle }) => {
   const [activeTab, setActiveTab] = useState<string>('overview');
+  
+  // Make displayData stateful so it can be updated
+  const [displayData, setDisplayData] = useState<GeneratedCaseData>(() => {
+    return caseData.originalGeneratedData || convertSimulationCaseToGenerated(caseData);
+  });
 
-  // Prioritize original generated data when available
-  const displayData: GeneratedCaseData = caseData.originalGeneratedData || convertSimulationCaseToGenerated(caseData);
+  // Handler to update the case data when on-demand content is generated
+  const handleCaseDataUpdate = (updatedCaseData: GeneratedCaseData) => {
+    setDisplayData(updatedCaseData);
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewTab caseData={displayData} />;
+        return <OverviewTab caseData={displayData} onCaseDataUpdate={handleCaseDataUpdate} />;
       case 'patient':
         return <PatientTab caseData={displayData} />;
       case 'presentation':
@@ -174,7 +181,7 @@ const CaseDisplayTabs: React.FC<CaseDisplayTabsProps> = ({ caseData, caseTitle }
       case 'raw':
         return <RawOutputTab caseData={displayData} />;
       default:
-        return <OverviewTab caseData={displayData} />;
+        return <OverviewTab caseData={displayData} onCaseDataUpdate={handleCaseDataUpdate} />;
     }
   };
 
