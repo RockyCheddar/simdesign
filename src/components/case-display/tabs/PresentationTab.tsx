@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
 import CompletePhysicalExamSection from '../components/CompletePhysicalExamSection';
+import ClinicalNarrativeSection from '../ClinicalNarrativeSection';
 import LaboratoryResultsSection from '../components/LaboratoryResultsSection';
 import InfoCard, { DataRow } from '../components/InfoCard';
 import VitalSignCard from '../components/VitalSignCard';
@@ -15,6 +16,7 @@ interface PresentationTabProps {
 
 const PresentationTab: React.FC<PresentationTabProps> = ({ caseData, onCaseDataUpdate }) => {
   const [onDemandContent, setOnDemandContent] = useState<Record<string, string>>({});
+  const [isGeneratingClinicalNarrative, setIsGeneratingClinicalNarrative] = useState(false);
 
   const handleContentGenerated = (sectionId: string, content: string) => {
     setOnDemandContent(prev => ({ ...prev, [sectionId]: content }));
@@ -27,6 +29,22 @@ const PresentationTab: React.FC<PresentationTabProps> = ({ caseData, onCaseDataU
       onDemandOptions: {
         ...caseData.onDemandOptions,
         'complete-physical-exam': JSON.stringify(completePhysicalExamData)
+      }
+    };
+    
+    // Call the parent callback if available
+    if (onCaseDataUpdate) {
+      onCaseDataUpdate(updatedCaseData);
+    }
+  };
+
+  const handleClinicalNarrativeGenerated = (clinicalNarrativeData: any) => {
+    // Update the case data with the new clinical narrative information
+    const updatedCaseData = {
+      ...caseData,
+      onDemandOptions: {
+        ...caseData.onDemandOptions,
+        'clinical-narrative': JSON.stringify(clinicalNarrativeData)
       }
     };
     
@@ -184,6 +202,30 @@ const PresentationTab: React.FC<PresentationTabProps> = ({ caseData, onCaseDataU
       {/* On-Demand Content Sections */}
       <div className="space-y-6">
         <CompletePhysicalExamSection caseData={caseData} onContentGenerated={handleCompletePhysicalExamGenerated} />
+
+        <ClinicalNarrativeSection 
+          data={caseData.onDemandOptions?.['clinical-narrative'] ? JSON.parse(caseData.onDemandOptions['clinical-narrative']) : undefined}
+          isGenerating={isGeneratingClinicalNarrative}
+          onGenerate={async () => {
+            setIsGeneratingClinicalNarrative(true);
+            try {
+              const response = await fetch('/api/ai/generate-clinical-narrative', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ caseData })
+              });
+              if (response.ok) {
+                const { clinicalNarrativeData } = await response.json();
+                handleClinicalNarrativeGenerated(clinicalNarrativeData);
+              }
+            } catch (error) {
+              console.error('Error generating clinical narrative:', error);
+            } finally {
+              setIsGeneratingClinicalNarrative(false);
+            }
+          }}
+          onDataUpdate={handleClinicalNarrativeGenerated}
+        />
 
         <LaboratoryResultsSection caseData={caseData} onContentGenerated={handleLaboratoryResultsGenerated} />
 

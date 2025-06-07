@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import { Button } from '@/components/ui';
+import InfoCard from '../components/InfoCard';
 
 interface RawOutputTabProps {
   caseData: GeneratedCaseData;
@@ -35,8 +36,44 @@ const RawOutputTab: React.FC<RawOutputTabProps> = ({ caseData }) => {
     URL.revokeObjectURL(url);
   };
 
+  const handleSendToEdEHR = () => {
+    // TODO: Implement integration with edEHR
+    console.log('Sending to edEHR:', caseData);
+    // This would typically make an API call to send the data to edEHR
+    alert('Send to edEHR functionality will be implemented soon!');
+  };
+
   const formatJSON = (obj: unknown): string => {
     return JSON.stringify(obj, null, 2);
+  };
+
+  // Helper function to get generated content items
+  const getGeneratedItems = (section: keyof GeneratedCaseData) => {
+    const data = caseData[section];
+    if (!data || typeof data !== 'object') return [];
+    
+    return Object.keys(data).filter(key => {
+      const value = (data as any)[key];
+      return value !== null && value !== undefined && value !== '';
+    });
+  };
+
+  // Helper function to get on-demand generated content
+  const getOnDemandItems = () => {
+    if (!caseData.onDemandOptions) return [];
+    
+    const items: string[] = [];
+    Object.keys(caseData.onDemandOptions).forEach(key => {
+      const value = caseData.onDemandOptions![key];
+      if (value && value.trim() !== '') {
+        // Convert kebab-case to title case
+        const title = key.split('-').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+        items.push(title);
+      }
+    });
+    return items;
   };
 
   return (
@@ -74,6 +111,15 @@ const RawOutputTab: React.FC<RawOutputTabProps> = ({ caseData }) => {
                 <span>💾</span>
                 <span>Download</span>
               </Button>
+              <Button
+                onClick={handleSendToEdEHR}
+                variant="primary"
+                size="sm"
+                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <span>Send to edEHR</span>
+                <span>→</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -88,110 +134,137 @@ const RawOutputTab: React.FC<RawOutputTabProps> = ({ caseData }) => {
       </div>
 
       {/* Data Structure Overview */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
-          <h3 className="text-lg font-semibold text-gray-900">Data Structure Overview</h3>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Overview Section */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-lg font-semibold text-blue-800 mb-3">Overview</h4>
-              <ul className="space-y-1 text-sm text-blue-700">
-                <li>• Case Title</li>
-                <li>• Case Summary</li>
-                <li>• Learning Objectives</li>
-                <li>• Patient Basics</li>
-                <li>• Clinical Setting</li>
-              </ul>
-            </div>
+      <InfoCard title="Data Structure Overview">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+          {/* Overview Section */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">Overview</h4>
+            <ul className="space-y-1 text-sm text-gray-700">
+              {getGeneratedItems('overview').length > 0 ? (
+                getGeneratedItems('overview').map((item, index) => (
+                  <li key={index}>• {item.charAt(0).toUpperCase() + item.slice(1).replace(/([A-Z])/g, ' $1')}</li>
+                ))
+              ) : (
+                <li className="text-gray-500 italic">No overview data generated</li>
+              )}
+            </ul>
+          </div>
 
-            {/* Patient Section */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="text-lg font-semibold text-green-800 mb-3">Patient</h4>
-              <ul className="space-y-1 text-sm text-green-700">
-                <li>• Demographics</li>
-                <li>• Chief Complaint</li>
-                <li>• History of Present Illness</li>
-                <li>• Current Medications</li>
-              </ul>
-            </div>
+          {/* Patient Section */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">Patient</h4>
+            <ul className="space-y-1 text-sm text-gray-700">
+              {getGeneratedItems('patient').length > 0 ? (
+                getGeneratedItems('patient').map((item, index) => (
+                  <li key={index}>• {item.charAt(0).toUpperCase() + item.slice(1).replace(/([A-Z])/g, ' $1')}</li>
+                ))
+              ) : (
+                <li className="text-gray-500 italic">No patient data generated</li>
+              )}
+            </ul>
+          </div>
 
-            {/* Presentation Section */}
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h4 className="text-lg font-semibold text-purple-800 mb-3">Presentation</h4>
-              <ul className="space-y-1 text-sm text-purple-700">
-                <li>• Vital Signs</li>
-                <li>• Physical Exam Findings</li>
-                <li>• Laboratory Results</li>
-                <li>• Imaging Studies</li>
-              </ul>
-            </div>
+          {/* Presentation Section */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">Presentation</h4>
+            <ul className="space-y-1 text-sm text-gray-700">
+              {getGeneratedItems('presentation').length > 0 ? (
+                getGeneratedItems('presentation').map((item, index) => (
+                  <li key={index}>• {item.charAt(0).toUpperCase() + item.slice(1).replace(/([A-Z])/g, ' $1')}</li>
+                ))
+              ) : (
+                <li className="text-gray-500 italic">No presentation data generated</li>
+              )}
+            </ul>
+          </div>
 
-            {/* Treatment Section */}
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h4 className="text-lg font-semibold text-red-800 mb-3">Treatment</h4>
-              <ul className="space-y-1 text-sm text-red-700">
-                <li>• Initial Interventions</li>
-                <li>• Treatment Plan</li>
-                <li>• Scenario Progression</li>
-              </ul>
-            </div>
+          {/* Treatment Section */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">Treatment</h4>
+            <ul className="space-y-1 text-sm text-gray-700">
+              {getGeneratedItems('treatment').length > 0 ? (
+                getGeneratedItems('treatment').map((item, index) => (
+                  <li key={index}>• {item.charAt(0).toUpperCase() + item.slice(1).replace(/([A-Z])/g, ' $1')}</li>
+                ))
+              ) : (
+                <li className="text-gray-500 italic">No treatment data generated</li>
+              )}
+            </ul>
+          </div>
 
-            {/* Simulation Section */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h4 className="text-lg font-semibold text-yellow-800 mb-3">Simulation</h4>
-              <ul className="space-y-1 text-sm text-yellow-700">
-                <li>• Learning Objectives</li>
-                <li>• Competency Areas</li>
-                <li>• Core Assessment</li>
-              </ul>
-            </div>
+          {/* Simulation Section */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">Simulation</h4>
+            <ul className="space-y-1 text-sm text-gray-700">
+              {getGeneratedItems('simulation').length > 0 ? (
+                getGeneratedItems('simulation').map((item, index) => (
+                  <li key={index}>• {item.charAt(0).toUpperCase() + item.slice(1).replace(/([A-Z])/g, ' $1')}</li>
+                ))
+              ) : (
+                <li className="text-gray-500 italic">No simulation data generated</li>
+              )}
+            </ul>
+          </div>
 
-            {/* Smart Defaults Section */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="text-lg font-semibold text-gray-800 mb-3">Smart Defaults</h4>
-              <ul className="space-y-1 text-sm text-gray-700">
-                <li>• Context-based Content</li>
-                <li>• Experience Level Adaptations</li>
-                <li>• Domain-specific Additions</li>
-              </ul>
-            </div>
+          {/* Smart Defaults Section */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">Smart Defaults</h4>
+            <ul className="space-y-1 text-sm text-gray-700">
+              {getGeneratedItems('smartDefaults').length > 0 ? (
+                getGeneratedItems('smartDefaults').map((item, index) => (
+                  <li key={index}>• {item.charAt(0).toUpperCase() + item.slice(1).replace(/([A-Z])/g, ' $1')}</li>
+                ))
+              ) : (
+                <li className="text-gray-500 italic">No smart defaults generated</li>
+              )}
+            </ul>
+          </div>
+
+          {/* On-Demand Generated Content */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">Generated Content</h4>
+            <ul className="space-y-1 text-sm text-gray-700">
+              {getOnDemandItems().length > 0 ? (
+                getOnDemandItems().map((item, index) => (
+                  <li key={index}>• {item}</li>
+                ))
+              ) : (
+                <li className="text-gray-500 italic">No additional content generated</li>
+              )}
+            </ul>
           </div>
         </div>
-      </div>
+      </InfoCard>
 
       {/* Usage Instructions */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
-          <h3 className="text-lg font-semibold text-gray-900">Usage Instructions</h3>
-        </div>
-        <div className="p-6">
-          <div className="prose prose-sm max-w-none text-gray-700">
-            <h4 className="text-lg font-medium text-gray-900 mb-3">How to Use This Data</h4>
-            <ul className="space-y-2">
-              <li>
-                <strong>Copy JSON:</strong> Use the &ldquo;Copy JSON&rdquo; button to copy the entire case data to your clipboard for use in other applications.
-              </li>
-              <li>
-                <strong>Download File:</strong> Click &ldquo;Download&rdquo; to save the case as a JSON file that can be imported into simulation systems.
-              </li>
-              <li>
-                <strong>API Integration:</strong> This JSON structure is designed to be compatible with most healthcare simulation platforms.
-              </li>
-              <li>
-                <strong>Customization:</strong> You can modify the JSON data to customize the case for your specific needs before importing.
-              </li>
-            </ul>
+      <InfoCard title="Usage Instructions">
+        <div className="prose prose-sm max-w-none text-gray-700">
+          <h4 className="text-lg font-medium text-gray-900 mb-3">How to Use This Data</h4>
+          <ul className="space-y-2">
+            <li>
+              <strong>Copy JSON:</strong> Use the &ldquo;Copy JSON&rdquo; button to copy the entire case data to your clipboard for use in other applications.
+            </li>
+            <li>
+              <strong>Download File:</strong> Click &ldquo;Download&rdquo; to save the case as a JSON file that can be imported into simulation systems.
+            </li>
+            <li>
+              <strong>Send to edEHR:</strong> Click &ldquo;Send to edEHR&rdquo; to directly integrate with the edEHR platform for seamless case deployment.
+            </li>
+            <li>
+              <strong>API Integration:</strong> This JSON structure is designed to be compatible with most healthcare simulation platforms.
+            </li>
+            <li>
+              <strong>Customization:</strong> You can modify the JSON data to customize the case for your specific needs before importing.
+            </li>
+          </ul>
 
-            <h4 className="text-lg font-medium text-gray-900 mb-3 mt-6">Data Validation</h4>
-            <p className="text-gray-600">
-              All generated data has been validated for completeness and medical accuracy. The structure follows 
-              healthcare simulation industry standards and includes all required fields for comprehensive case delivery.
-            </p>
-          </div>
+          <h4 className="text-lg font-medium text-gray-900 mb-3 mt-6">Data Validation</h4>
+          <p className="text-gray-600">
+            All generated data has been validated for completeness and medical accuracy. The structure follows 
+            healthcare simulation industry standards and includes all required fields for comprehensive case delivery.
+          </p>
         </div>
-      </div>
+      </InfoCard>
     </div>
   );
 };
