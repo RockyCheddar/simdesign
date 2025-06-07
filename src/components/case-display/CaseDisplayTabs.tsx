@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { SimulationCase } from '@/types';
 import { GeneratedCaseData } from '@/types/caseCreation';
+import { saveCase } from '@/utils/caseStorage';
 import OverviewTab from './tabs/OverviewTab';
 import PatientTab from './tabs/PatientTab';
 import PresentationTab from './tabs/PresentationTab';
@@ -14,6 +15,8 @@ import RawOutputTab from './tabs/RawOutputTab';
 interface CaseDisplayTabsProps {
   caseData: SimulationCase;
   caseTitle?: string;
+  caseId?: string;
+  onCaseUpdate?: (updatedCase: SimulationCase) => void;
 }
 
 const tabs = [
@@ -151,7 +154,7 @@ const convertSimulationCaseToGenerated = (simCase: SimulationCase): GeneratedCas
   };
 };
 
-const CaseDisplayTabs: React.FC<CaseDisplayTabsProps> = ({ caseData, caseTitle }) => {
+const CaseDisplayTabs: React.FC<CaseDisplayTabsProps> = ({ caseData, caseTitle, caseId, onCaseUpdate }) => {
   const [activeTab, setActiveTab] = useState<string>('overview');
   
   // Make displayData stateful so it can be updated
@@ -162,6 +165,27 @@ const CaseDisplayTabs: React.FC<CaseDisplayTabsProps> = ({ caseData, caseTitle }
   // Handler to update the case data when on-demand content is generated
   const handleCaseDataUpdate = (updatedCaseData: GeneratedCaseData) => {
     setDisplayData(updatedCaseData);
+    
+    // If we have a caseId, persist the updated data to storage
+    if (caseId && onCaseUpdate) {
+      try {
+        const updatedCase: SimulationCase = {
+          ...caseData,
+          originalGeneratedData: updatedCaseData,
+          updatedAt: new Date()
+        };
+        
+        const saved = saveCase(updatedCase);
+        if (saved) {
+          onCaseUpdate(updatedCase);
+          console.log('✅ Case successfully persisted with generated content');
+        } else {
+          console.error('❌ Failed to persist case updates');
+        }
+      } catch (error) {
+        console.error('❌ Error persisting case updates:', error);
+      }
+    }
   };
 
   const renderTabContent = () => {

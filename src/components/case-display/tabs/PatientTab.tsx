@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
 import SocialHistorySection from '../components/SocialHistorySection';
+import PastMedicalHistorySection from '../components/PastMedicalHistorySection';
 import InfoCard, { DataRow } from '../components/InfoCard';
 
 interface PatientTabProps {
@@ -25,6 +26,22 @@ const PatientTab: React.FC<PatientTabProps> = ({ caseData, onCaseDataUpdate }) =
       onDemandOptions: {
         ...caseData.onDemandOptions,
         'detailed-social-history': JSON.stringify(socialHistoryData)
+      }
+    };
+    
+    // Call the parent callback if available
+    if (onCaseDataUpdate) {
+      onCaseDataUpdate(updatedCaseData);
+    }
+  };
+
+  const handlePastMedicalHistoryGenerated = (pastMedicalHistoryData: any) => {
+    // Update the case data with the new past medical history information
+    const updatedCaseData = {
+      ...caseData,
+      onDemandOptions: {
+        ...caseData.onDemandOptions,
+        'past-medical-history': JSON.stringify(pastMedicalHistoryData)
       }
     };
     
@@ -207,14 +224,7 @@ const PatientTab: React.FC<PatientTabProps> = ({ caseData, onCaseDataUpdate }) =
       <div className="space-y-6">
         <SocialHistorySection caseData={caseData} onContentGenerated={handleSocialHistoryGenerated} />
 
-        <OnDemandSection
-          id="past-medical-history"
-          title="Past Medical History"
-          description="Complete medical timeline and previous conditions"
-          content={onDemandContent['past-medical-history']}
-          onContentGenerated={handleContentGenerated}
-          prompt="Generate comprehensive past medical history including previous conditions, surgeries, and hospitalizations"
-        />
+        <PastMedicalHistorySection caseData={caseData} onContentGenerated={handlePastMedicalHistoryGenerated} />
 
         <OnDemandSection
           id="family-history"

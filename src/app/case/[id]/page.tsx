@@ -90,6 +90,8 @@ const CaseViewPage: React.FC = () => {
       <CaseDisplayTabs 
         caseData={simulationCase} 
         caseTitle={simulationCase.title}
+        caseId={params.id as string}
+        onCaseUpdate={setCase}
       />
     </div>
   );
