@@ -3,18 +3,36 @@
 import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
+import CompletePhysicalExamSection from '../components/CompletePhysicalExamSection';
 import InfoCard, { DataRow } from '../components/InfoCard';
 import VitalSignCard from '../components/VitalSignCard';
 
 interface PresentationTabProps {
   caseData: GeneratedCaseData;
+  onCaseDataUpdate?: (updatedCaseData: GeneratedCaseData) => void;
 }
 
-const PresentationTab: React.FC<PresentationTabProps> = ({ caseData }) => {
+const PresentationTab: React.FC<PresentationTabProps> = ({ caseData, onCaseDataUpdate }) => {
   const [onDemandContent, setOnDemandContent] = useState<Record<string, string>>({});
 
   const handleContentGenerated = (sectionId: string, content: string) => {
     setOnDemandContent(prev => ({ ...prev, [sectionId]: content }));
+  };
+
+  const handleCompletePhysicalExamGenerated = (completePhysicalExamData: any) => {
+    // Update the case data with the new complete physical exam information
+    const updatedCaseData = {
+      ...caseData,
+      onDemandOptions: {
+        ...caseData.onDemandOptions,
+        'complete-physical-exam': JSON.stringify(completePhysicalExamData)
+      }
+    };
+    
+    // Call the parent callback if available
+    if (onCaseDataUpdate) {
+      onCaseDataUpdate(updatedCaseData);
+    }
   };
 
   const vitalSigns = caseData.presentation?.vitalSigns;
@@ -148,14 +166,7 @@ const PresentationTab: React.FC<PresentationTabProps> = ({ caseData }) => {
 
       {/* On-Demand Content Sections */}
       <div className="space-y-6">
-        <OnDemandSection
-          id="complete-physical-exam"
-          title="Complete Physical Exam"
-          description="Head-to-toe systematic assessment"
-          content={onDemandContent['complete-physical-exam']}
-          onContentGenerated={handleContentGenerated}
-          prompt="Generate a comprehensive head-to-toe physical examination with systematic findings organized by body systems"
-        />
+        <CompletePhysicalExamSection caseData={caseData} onContentGenerated={handleCompletePhysicalExamGenerated} />
 
         <OnDemandSection
           id="laboratory-results"
