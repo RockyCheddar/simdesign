@@ -169,7 +169,7 @@ const CaseDisplayTabs: React.FC<CaseDisplayTabsProps> = ({ caseData, caseTitle }
       case 'overview':
         return <OverviewTab caseData={displayData} onCaseDataUpdate={handleCaseDataUpdate} />;
       case 'patient':
-        return <PatientTab caseData={displayData} />;
+        return <PatientTab caseData={displayData} onCaseDataUpdate={handleCaseDataUpdate} />;
       case 'presentation':
         return <PresentationTab caseData={displayData} />;
       case 'treatment':

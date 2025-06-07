@@ -3,17 +3,35 @@
 import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
+import SocialHistorySection from '../components/SocialHistorySection';
 import InfoCard, { DataRow } from '../components/InfoCard';
 
 interface PatientTabProps {
   caseData: GeneratedCaseData;
+  onCaseDataUpdate?: (updatedCaseData: GeneratedCaseData) => void;
 }
 
-const PatientTab: React.FC<PatientTabProps> = ({ caseData }) => {
+const PatientTab: React.FC<PatientTabProps> = ({ caseData, onCaseDataUpdate }) => {
   const [onDemandContent, setOnDemandContent] = useState<Record<string, string>>({});
 
   const handleContentGenerated = (sectionId: string, content: string) => {
     setOnDemandContent(prev => ({ ...prev, [sectionId]: content }));
+  };
+
+  const handleSocialHistoryGenerated = (socialHistoryData: any) => {
+    // Update the case data with the new social history information
+    const updatedCaseData = {
+      ...caseData,
+      onDemandOptions: {
+        ...caseData.onDemandOptions,
+        'detailed-social-history': JSON.stringify(socialHistoryData)
+      }
+    };
+    
+    // Call the parent callback if available
+    if (onCaseDataUpdate) {
+      onCaseDataUpdate(updatedCaseData);
+    }
   };
 
   const calculateBMI = (weight?: number, height?: number) => {
@@ -187,14 +205,7 @@ const PatientTab: React.FC<PatientTabProps> = ({ caseData }) => {
 
       {/* On-Demand Content Sections */}
       <div className="space-y-6">
-        <OnDemandSection
-          id="detailed-social-history"
-          title="Detailed Social History"
-          description="Family dynamics, work environment, lifestyle factors"
-          content={onDemandContent['detailed-social-history']}
-          onContentGenerated={handleContentGenerated}
-          prompt="Generate detailed social history including family dynamics, work environment, and lifestyle factors for this patient"
-        />
+        <SocialHistorySection caseData={caseData} onContentGenerated={handleSocialHistoryGenerated} />
 
         <OnDemandSection
           id="past-medical-history"
