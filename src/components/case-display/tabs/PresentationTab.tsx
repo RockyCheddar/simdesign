@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
 import CompletePhysicalExamSection from '../components/CompletePhysicalExamSection';
+import LaboratoryResultsSection from '../components/LaboratoryResultsSection';
 import InfoCard, { DataRow } from '../components/InfoCard';
 import VitalSignCard from '../components/VitalSignCard';
 
@@ -26,6 +27,22 @@ const PresentationTab: React.FC<PresentationTabProps> = ({ caseData, onCaseDataU
       onDemandOptions: {
         ...caseData.onDemandOptions,
         'complete-physical-exam': JSON.stringify(completePhysicalExamData)
+      }
+    };
+    
+    // Call the parent callback if available
+    if (onCaseDataUpdate) {
+      onCaseDataUpdate(updatedCaseData);
+    }
+  };
+
+  const handleLaboratoryResultsGenerated = (laboratoryResultsData: any) => {
+    // Update the case data with the new laboratory results information
+    const updatedCaseData = {
+      ...caseData,
+      onDemandOptions: {
+        ...caseData.onDemandOptions,
+        'laboratory-results': JSON.stringify(laboratoryResultsData)
       }
     };
     
@@ -168,14 +185,7 @@ const PresentationTab: React.FC<PresentationTabProps> = ({ caseData, onCaseDataU
       <div className="space-y-6">
         <CompletePhysicalExamSection caseData={caseData} onContentGenerated={handleCompletePhysicalExamGenerated} />
 
-        <OnDemandSection
-          id="laboratory-results"
-          title="Laboratory Results"
-          description="Comprehensive lab panel with reference ranges"
-          content={onDemandContent['laboratory-results']}
-          onContentGenerated={handleContentGenerated}
-          prompt="Generate comprehensive laboratory results in HTML table format with test names, values, reference ranges, and highlighted abnormal values"
-        />
+        <LaboratoryResultsSection caseData={caseData} onContentGenerated={handleLaboratoryResultsGenerated} />
 
         <OnDemandSection
           id="imaging-studies"
