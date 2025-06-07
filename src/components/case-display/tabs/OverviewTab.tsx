@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
 import BackgroundSection from '../components/BackgroundSection';
+import BriefingSection from '../components/BriefingSection';
 import InfoCard, { DataRow } from '../components/InfoCard';
 
 interface OverviewTabProps {
@@ -25,6 +26,22 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ caseData, onCaseDataUpdate })
       onDemandOptions: {
         ...caseData.onDemandOptions,
         'case-background': JSON.stringify(backgroundData)
+      }
+    };
+    
+    // Call the parent callback if available
+    if (onCaseDataUpdate) {
+      onCaseDataUpdate(updatedCaseData);
+    }
+  };
+
+  const handleBriefingGenerated = (briefingData: any) => {
+    // Update the case data with the new briefing information
+    const updatedCaseData = {
+      ...caseData,
+      onDemandOptions: {
+        ...caseData.onDemandOptions,
+        'pre-simulation-briefing': JSON.stringify(briefingData)
       }
     };
     
@@ -152,14 +169,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ caseData, onCaseDataUpdate })
       {/* On-Demand Content Sections */}
       <BackgroundSection caseData={caseData} onContentGenerated={handleBackgroundGenerated} />
 
-      <OnDemandSection
-        id="pre-simulation-briefing"
-        title="Pre-Simulation Briefing"
-        description="Generate detailed briefing materials for facilitators and participants"
-        content={onDemandContent['pre-simulation-briefing']}
-        onContentGenerated={handleContentGenerated}
-        prompt="Generate detailed briefing materials for facilitators and participants for this healthcare simulation case"
-      />
+      <BriefingSection caseData={caseData} onContentGenerated={handleBriefingGenerated} />
     </div>
   );
 };
