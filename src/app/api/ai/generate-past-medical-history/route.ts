@@ -34,12 +34,7 @@ const generatePastMedicalHistoryPrompt = (caseData: object): string => {
         "status": "Current/Up to date/Behind/Unknown",
         "recent": "List recent immunizations like 'COVID-19 booster (2023)', 'Influenza (annual)' or 'None documented'"
       },
-      "familyHistory": {
-        "cardiovascular": "Family history of heart disease, stroke, etc. or 'None known'",
-        "cancer": "Family history of cancers or 'None known'",
-        "diabetes": "Family history of diabetes or 'None known'",
-        "other": "Other significant family history or 'None known'"
-      },
+      
       "mentalHealthHistory": {
         "conditions": "Past or current mental health diagnoses or 'None documented'",
         "medications": "Psychiatric medications or 'None'",

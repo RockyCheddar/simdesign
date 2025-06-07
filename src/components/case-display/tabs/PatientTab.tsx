@@ -5,6 +5,7 @@ import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
 import SocialHistorySection from '../components/SocialHistorySection';
 import PastMedicalHistorySection from '../components/PastMedicalHistorySection';
+import FamilyHistorySection from '../components/FamilyHistorySection';
 import InfoCard, { DataRow } from '../components/InfoCard';
 
 interface PatientTabProps {
@@ -42,6 +43,22 @@ const PatientTab: React.FC<PatientTabProps> = ({ caseData, onCaseDataUpdate }) =
       onDemandOptions: {
         ...caseData.onDemandOptions,
         'past-medical-history': JSON.stringify(pastMedicalHistoryData)
+      }
+    };
+    
+    // Call the parent callback if available
+    if (onCaseDataUpdate) {
+      onCaseDataUpdate(updatedCaseData);
+    }
+  };
+
+  const handleFamilyHistoryGenerated = (familyHistoryData: any) => {
+    // Update the case data with the new family history information
+    const updatedCaseData = {
+      ...caseData,
+      onDemandOptions: {
+        ...caseData.onDemandOptions,
+        'family-history': JSON.stringify(familyHistoryData)
       }
     };
     
@@ -226,23 +243,7 @@ const PatientTab: React.FC<PatientTabProps> = ({ caseData, onCaseDataUpdate }) =
 
         <PastMedicalHistorySection caseData={caseData} onContentGenerated={handlePastMedicalHistoryGenerated} />
 
-        <OnDemandSection
-          id="family-history"
-          title="Family History"
-          description="Genetic and familial risk factors"
-          content={onDemandContent['family-history']}
-          onContentGenerated={handleContentGenerated}
-          prompt="Generate family history including genetic predispositions and familial risk factors relevant to this case"
-        />
-
-        <OnDemandSection
-          id="review-of-systems"
-          title="Review of Systems"
-          description="Comprehensive symptom assessment by body system"
-          content={onDemandContent['review-of-systems']}
-          onContentGenerated={handleContentGenerated}
-          prompt="Generate comprehensive review of systems assessment organized by body systems"
-        />
+        <FamilyHistorySection caseData={caseData} onContentGenerated={handleFamilyHistoryGenerated} />
       </div>
     </div>
   );

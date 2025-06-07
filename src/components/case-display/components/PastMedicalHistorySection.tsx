@@ -19,12 +19,7 @@ interface PastMedicalHistoryData {
     status: string;
     recent: string;
   };
-  familyHistory: {
-    cardiovascular: string;
-    cancer: string;
-    diabetes: string;
-    other: string;
-  };
+
   mentalHealthHistory: {
     conditions: string;
     medications: string;
@@ -233,29 +228,6 @@ const PastMedicalHistorySection: React.FC<PastMedicalHistorySectionProps> = ({ c
           }
         />
         
-        <DataRow 
-          label="Family History" 
-          value={
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="font-medium text-gray-600">Cardiovascular:</span>
-                <span className="ml-2 text-gray-900">{pastMedicalHistoryData.familyHistory.cardiovascular}</span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-600">Cancer:</span>
-                <span className="ml-2 text-gray-900">{pastMedicalHistoryData.familyHistory.cancer}</span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-600">Diabetes:</span>
-                <span className="ml-2 text-gray-900">{pastMedicalHistoryData.familyHistory.diabetes}</span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-600">Other:</span>
-                <span className="ml-2 text-gray-900">{pastMedicalHistoryData.familyHistory.other}</span>
-              </div>
-            </div>
-          }
-        />
         
         <DataRow 
           label="Mental Health History" 
