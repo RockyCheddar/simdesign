@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
 import ComplicationScenariosSection from '../components/ComplicationScenariosSection';
+import MARSection from '../components/MARSection';
 import InfoCard from '../components/InfoCard';
 
 interface TreatmentTabProps {
@@ -25,6 +26,22 @@ const TreatmentTab: React.FC<TreatmentTabProps> = ({ caseData, onCaseDataUpdate 
       onDemandOptions: {
         ...caseData.onDemandOptions,
         'complication-scenarios': JSON.stringify(complicationData)
+      }
+    };
+    
+    // Call the parent callback if available
+    if (onCaseDataUpdate) {
+      onCaseDataUpdate(updatedCaseData);
+    }
+  };
+
+  const handleMARGenerated = (marData: any) => {
+    // Update the case data with the new MAR information
+    const updatedCaseData = {
+      ...caseData,
+      onDemandOptions: {
+        ...caseData.onDemandOptions,
+        'medication-mar': JSON.stringify(marData)
       }
     };
     
@@ -142,13 +159,9 @@ const TreatmentTab: React.FC<TreatmentTabProps> = ({ caseData, onCaseDataUpdate 
           onContentGenerated={handleComplicationScenariosGenerated}
         />
 
-        <OnDemandSection
-          id="medication-details"
-          title="Medication Details"
-          description="Detailed dosing, interactions, and monitoring requirements"
-          content={onDemandContent['medication-details']}
-          onContentGenerated={handleContentGenerated}
-          prompt="Generate detailed medication information including dosing, drug interactions, and monitoring requirements"
+        <MARSection
+          caseData={caseData}
+          onContentGenerated={handleMARGenerated}
         />
 
         <OnDemandSection
