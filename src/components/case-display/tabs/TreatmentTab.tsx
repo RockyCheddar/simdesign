@@ -3,17 +3,35 @@
 import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
+import ComplicationScenariosSection from '../components/ComplicationScenariosSection';
 import InfoCard from '../components/InfoCard';
 
 interface TreatmentTabProps {
   caseData: GeneratedCaseData;
+  onCaseDataUpdate?: (updatedCaseData: GeneratedCaseData) => void;
 }
 
-const TreatmentTab: React.FC<TreatmentTabProps> = ({ caseData }) => {
+const TreatmentTab: React.FC<TreatmentTabProps> = ({ caseData, onCaseDataUpdate }) => {
   const [onDemandContent, setOnDemandContent] = useState<Record<string, string>>({});
 
   const handleContentGenerated = (sectionId: string, content: string) => {
     setOnDemandContent(prev => ({ ...prev, [sectionId]: content }));
+  };
+
+  const handleComplicationScenariosGenerated = (complicationData: any) => {
+    // Update the case data with the new complication scenarios information
+    const updatedCaseData = {
+      ...caseData,
+      onDemandOptions: {
+        ...caseData.onDemandOptions,
+        'complication-scenarios': JSON.stringify(complicationData)
+      }
+    };
+    
+    // Call the parent callback if available
+    if (onCaseDataUpdate) {
+      onCaseDataUpdate(updatedCaseData);
+    }
   };
 
   return (
@@ -119,13 +137,9 @@ const TreatmentTab: React.FC<TreatmentTabProps> = ({ caseData }) => {
           prompt="Generate alternative treatment approaches and clinical decision pathways for this case"
         />
 
-        <OnDemandSection
-          id="complication-scenarios"
-          title="Complication Scenarios"
-          description="What could go wrong and how to manage complications"
-          content={onDemandContent['complication-scenarios']}
-          onContentGenerated={handleContentGenerated}
-          prompt="Generate potential complications that could arise during this case and how to manage them"
+        <ComplicationScenariosSection
+          caseData={caseData}
+          onContentGenerated={handleComplicationScenariosGenerated}
         />
 
         <OnDemandSection
