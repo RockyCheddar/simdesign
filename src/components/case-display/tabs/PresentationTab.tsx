@@ -6,6 +6,7 @@ import OnDemandSection from '../components/OnDemandSection';
 import CompletePhysicalExamSection from '../components/CompletePhysicalExamSection';
 import ClinicalNarrativeSection from '../ClinicalNarrativeSection';
 import LaboratoryResultsSection from '../components/LaboratoryResultsSection';
+import ImagingStudiesSection from '../components/ImagingStudiesSection';
 import InfoCard, { DataRow } from '../components/InfoCard';
 import VitalSignCard from '../components/VitalSignCard';
 
@@ -61,6 +62,22 @@ const PresentationTab: React.FC<PresentationTabProps> = ({ caseData, onCaseDataU
       onDemandOptions: {
         ...caseData.onDemandOptions,
         'laboratory-results': JSON.stringify(laboratoryResultsData)
+      }
+    };
+    
+    // Call the parent callback if available
+    if (onCaseDataUpdate) {
+      onCaseDataUpdate(updatedCaseData);
+    }
+  };
+
+  const handleImagingStudiesGenerated = (imagingStudiesData: any) => {
+    // Update the case data with the new imaging studies information
+    const updatedCaseData = {
+      ...caseData,
+      onDemandOptions: {
+        ...caseData.onDemandOptions,
+        'imaging-studies': JSON.stringify(imagingStudiesData)
       }
     };
     
@@ -229,14 +246,7 @@ const PresentationTab: React.FC<PresentationTabProps> = ({ caseData, onCaseDataU
 
         <LaboratoryResultsSection caseData={caseData} onContentGenerated={handleLaboratoryResultsGenerated} />
 
-        <OnDemandSection
-          id="imaging-studies"
-          title="Imaging Studies"
-          description="X-rays, CT, MRI with detailed findings"
-          content={onDemandContent['imaging-studies']}
-          onContentGenerated={handleContentGenerated}
-          prompt="Generate imaging studies including X-rays, CT scans, or MRI with detailed radiological findings and clinical significance"
-        />
+        <ImagingStudiesSection caseData={caseData} onContentGenerated={handleImagingStudiesGenerated} />
 
         <OnDemandSection
           id="additional-diagnostics"
