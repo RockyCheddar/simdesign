@@ -72,128 +72,81 @@ const CaseCard: React.FC<CaseCardProps> = ({ simulationCase, onDelete, onView })
     onView(simulationCase.id);
   };
 
-  // Get status based on case completeness
-  const getStatus = () => {
-    const hasComplete = simulationCase.patientInfo && 
-                      simulationCase.scenario && 
-                      simulationCase.learningObjectives.length > 0;
-    return hasComplete ? 'Complete' : 'Draft';
-  };
-
-  const status = getStatus();
-
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-start justify-between mb-3">
-          <h3 
-            className="text-lg font-semibold text-gray-900 line-clamp-2 cursor-pointer hover:text-blue-600 transition-colors"
-            onClick={handleView}
-          >
-            {simulationCase.title}
-          </h3>
-          <div className="flex items-center space-x-2 ml-3">
-            <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getDifficultyColor(simulationCase.difficulty)}`}>
-              {simulationCase.difficulty}
-            </span>
-            <span className={`px-2 py-1 text-xs font-medium rounded-full border ${
-              status === 'Complete' 
-                ? 'bg-blue-100 text-blue-800 border-blue-200' 
-                : 'bg-orange-100 text-orange-800 border-orange-200'
-            }`}>
-              {status}
-            </span>
+      {/* Header with Title */}
+      <div className="p-5 border-b border-gray-100">
+        <div className="mb-3">
+          {/* Title */}
+          <div className="mb-3">
+            <h3 
+              className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors leading-tight mb-3"
+              onClick={handleView}
+            >
+              {simulationCase.title}
+            </h3>
+          </div>
+          
+          {/* Difficulty Badge with Date and Duration */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-3">
+              <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getDifficultyColor(simulationCase.difficulty)}`}>
+                {simulationCase.difficulty}
+              </span>
+              <span className="text-xs text-gray-500">{formatDate(simulationCase.createdAt)}</span>
+              <span className="text-xs font-medium text-gray-600">
+                {simulationCase.duration} min
+              </span>
+            </div>
           </div>
         </div>
         
+        {/* Description */}
         <p className="text-gray-600 text-sm line-clamp-2 mb-3">
           {simulationCase.description}
         </p>
 
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <span>{formatDate(simulationCase.createdAt)}</span>
-          <span>{simulationCase.duration} min</span>
+        {/* Patient Info - Condensed */}
+        <div className="text-sm text-gray-600 mb-2">
+          <span className="font-medium text-gray-900">{simulationCase.patientInfo.name}</span>
+          <span className="mx-2">•</span>
+          <span>{simulationCase.patientInfo.age} years</span>
+          <span className="mx-2">•</span>
+          <span className="capitalize">{simulationCase.patientInfo.gender}</span>
         </div>
       </div>
 
-      {/* Patient Info */}
-      <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-        <div className="flex items-center space-x-4 text-sm">
-          <div className="flex items-center">
-            <span className="text-gray-500 mr-1">Patient:</span>
-            <span className="font-medium text-gray-900">{simulationCase.patientInfo.name}</span>
-          </div>
-          <div className="flex items-center">
-            <span className="text-gray-500 mr-1">Age:</span>
-            <span className="font-medium text-gray-900">{simulationCase.patientInfo.age}</span>
-          </div>
-          <div className="flex items-center">
-            <span className="text-gray-500 mr-1">Gender:</span>
-            <span className="font-medium text-gray-900 capitalize">{simulationCase.patientInfo.gender}</span>
-          </div>
-        </div>
-        
-        <div className="mt-2">
-          <span className="text-gray-500 text-sm mr-1">Chief Complaint:</span>
-          <span className="text-gray-900 text-sm font-medium line-clamp-1">
-            {simulationCase.patientInfo.chiefComplaint}
-          </span>
-        </div>
-      </div>
-
-      {/* Learning Objectives */}
-      <div className="px-6 py-4">
+      {/* Learning Objectives - Condensed */}
+      <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
         <h4 className="text-sm font-medium text-gray-900 mb-2">Learning Objectives</h4>
-        <ul className="space-y-1">
-          {simulationCase.learningObjectives.slice(0, 3).map((objective, index) => (
-            <li key={index} className="text-sm text-gray-600 flex items-start">
-              <span className="text-blue-500 mr-2 mt-1">•</span>
+        <div className="space-y-1">
+          {simulationCase.learningObjectives.slice(0, 2).map((objective, index) => (
+            <div key={index} className="text-sm text-gray-600 flex items-start">
+              <span className="text-blue-500 mr-2 mt-1 text-xs">•</span>
               <span className="line-clamp-1">{objective}</span>
-            </li>
+            </div>
           ))}
-          {simulationCase.learningObjectives.length > 3 && (
-            <li className="text-sm text-gray-500 italic">
-              +{simulationCase.learningObjectives.length - 3} more objectives
-            </li>
+          {simulationCase.learningObjectives.length > 2 && (
+            <div className="text-xs text-gray-500 italic">
+              +{simulationCase.learningObjectives.length - 2} more objectives
+            </div>
           )}
-        </ul>
+        </div>
       </div>
 
-      {/* Tags */}
-      {simulationCase.tags.length > 0 && (
-        <div className="px-6 py-3 border-t border-gray-100">
-          <div className="flex flex-wrap gap-1">
-            {simulationCase.tags.slice(0, 4).map((tag, index) => (
-              <span
-                key={index}
-                className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md border border-blue-200"
-              >
-                {tag}
-              </span>
-            ))}
-            {simulationCase.tags.length > 4 && (
-              <span className="px-2 py-1 bg-gray-50 text-gray-500 text-xs rounded-md border border-gray-200">
-                +{simulationCase.tags.length - 4}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
+      {/* Actions - Wider Buttons */}
+      <div className="px-5 py-3 bg-white">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3 flex-1">
             <button
               onClick={handleView}
-              className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+              className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
             >
               View Case
             </button>
             <button
               onClick={handleExport}
-              className="px-3 py-1.5 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors"
+              className="px-6 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors"
             >
               Export JSON
             </button>
@@ -210,9 +163,9 @@ const CaseCard: React.FC<CaseCardProps> = ({ simulationCase, onDelete, onView })
                 e.stopPropagation();
                 setShowDeleteConfirm(!showDeleteConfirm);
               }}
-              className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-red-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </button>

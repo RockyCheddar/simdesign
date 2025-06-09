@@ -42,7 +42,7 @@ const Dashboard: React.FC = () => {
     
     // Make debug utility available in browser console
     if (typeof window !== 'undefined') {
-      (window as any).debugCaseCreation = debugCaseCreation;
+      (window as typeof window & { debugCaseCreation: typeof debugCaseCreation }).debugCaseCreation = debugCaseCreation;
       console.log('Debug utility available: call debugCaseCreation() in console');
     }
   }, []);
@@ -208,76 +208,95 @@ const Dashboard: React.FC = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.name?.split(' ')[0]}
-          </h2>
-          <p className="text-gray-600">
-            Manage your simulation cases and create engaging medical education content.
-          </p>
+        {/* Welcome Section with Stats */}
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Welcome back, {user?.name?.split(' ')[0]}
+            </h2>
+            <p className="text-gray-600">
+              Manage your simulation cases and create engaging medical education content.
+            </p>
+          </div>
+          
+          {/* Compact Stats Widget */}
+          <div className="hidden md:flex items-center space-x-4 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-gray-900">{storageStats.totalCases}</p>
+                <p className="text-xs text-gray-500">Cases</p>
+              </div>
+            </div>
+            <div className="w-px h-8 bg-gray-200"></div>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-gray-900">{storageStats.storageUsed}</p>
+                <p className="text-xs text-gray-500">Storage</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Stats and Actions */}
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+        {/* AI Action Buttons */}
+        <div className="mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl">
+            {/* Primary Action - AI Create Case */}
+            <button
+              onClick={handleCreateCase}
+              className="group relative bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+            >
+              <div className="flex items-center justify-center space-x-3">
+                <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9.5 16.5c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm0-4.5c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm0-4.5c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm3.5 0c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm3.5 0c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm0 4.5c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm0 4.5c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8z"/>
+                  </svg>
+                </div>
+                <span className="text-lg">AI Create Case</span>
               </div>
-              <div className="ml-4">
-                <p className="text-2xl font-semibold text-gray-900">{storageStats.totalCases}</p>
-                <p className="text-gray-500 text-sm">Total Cases</p>
-              </div>
-            </div>
-          </div>
+              <div className="absolute inset-0 rounded-xl bg-white/0 group-hover:bg-white/5 transition-colors"></div>
+            </button>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
-                </svg>
+            {/* Secondary Action - Upload & Enhance */}
+            <button
+              onClick={handleCreateFromDocument}
+              className="group relative bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-8 py-6 rounded-xl font-semibold hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+            >
+              <div className="flex items-center justify-center space-x-3">
+                <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                  </svg>
+                </div>
+                <span className="text-lg">Upload & Enhance</span>
               </div>
-              <div className="ml-4">
-                <p className="text-2xl font-semibold text-gray-900">{storageStats.storageUsed}</p>
-                <p className="text-gray-500 text-sm">Storage Used</p>
-              </div>
-            </div>
-          </div>
+              <div className="absolute inset-0 rounded-xl bg-white/0 group-hover:bg-white/5 transition-colors"></div>
+            </button>
 
-          <div className="md:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button
-                onClick={handleCreateCase}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Create New Case
-              </button>
-              <button
-                onClick={handleCreateFromDocument}
-                className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                From Document
-              </button>
-              <button
-                onClick={handleUploadJSON}
-                className="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center justify-center"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                Upload JSON
-              </button>
-            </div>
+            {/* Tertiary Action - Upload JSON */}
+            <button
+              onClick={handleUploadJSON}
+              className="group relative bg-gradient-to-r from-violet-500 to-violet-600 text-white px-8 py-6 rounded-xl font-semibold hover:from-violet-600 hover:to-violet-700 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+            >
+              <div className="flex items-center justify-center space-x-3">
+                <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                </div>
+                <span className="text-lg">Upload JSON</span>
+              </div>
+              <div className="absolute inset-0 rounded-xl bg-white/0 group-hover:bg-white/5 transition-colors"></div>
+            </button>
           </div>
         </div>
 
@@ -295,7 +314,7 @@ const Dashboard: React.FC = () => {
                   placeholder="Search by title, description, or tags..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-900 placeholder-gray-500"
                 />
               </div>
 
@@ -307,7 +326,7 @@ const Dashboard: React.FC = () => {
                   id="difficulty"
                   value={filterDifficulty}
                   onChange={(e) => setFilterDifficulty(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-900"
                 >
                   <option value="all">All Difficulties</option>
                   <option value="beginner">Beginner</option>
@@ -324,7 +343,7 @@ const Dashboard: React.FC = () => {
                   id="sort"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as 'date' | 'title' | 'difficulty')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-900"
                 >
                   <option value="date">Date Created</option>
                   <option value="title">Title</option>

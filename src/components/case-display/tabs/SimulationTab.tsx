@@ -53,11 +53,11 @@ const SimulationTab: React.FC<SimulationTabProps> = ({ caseData }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h5 className="text-md font-medium text-gray-800 mb-2">Specific Skills</h5>
-                  <ul className="space-y-1">
+                  <ul className="space-y-2">
                     {competency.specificSkills?.map((skill, skillIndex) => (
                       <li key={skillIndex} className="flex items-start">
-                        <span className="text-blue-500 mr-2 mt-1">•</span>
-                        <span className="text-gray-700 text-sm">{skill}</span>
+                        <span className="text-blue-500 mr-3 mt-0.5 flex-shrink-0">•</span>
+                        <span className="text-gray-700 text-sm leading-relaxed">{skill}</span>
                       </li>
                     )) || (
                       <li className="text-gray-500 italic text-sm">No specific skills listed</li>
@@ -67,11 +67,11 @@ const SimulationTab: React.FC<SimulationTabProps> = ({ caseData }) => {
                 
                 <div>
                   <h5 className="text-md font-medium text-gray-800 mb-2">Assessment Criteria</h5>
-                  <ul className="space-y-1">
+                  <ul className="space-y-2">
                     {competency.assessmentCriteria?.map((criteria, criteriaIndex) => (
                       <li key={criteriaIndex} className="flex items-start">
-                        <span className="text-green-500 mr-2 mt-1">✓</span>
-                        <span className="text-gray-700 text-sm">{criteria}</span>
+                        <span className="text-green-500 mr-3 mt-0.5 flex-shrink-0">✓</span>
+                        <span className="text-gray-700 text-sm leading-relaxed">{criteria}</span>
                       </li>
                     )) || (
                       <li className="text-gray-500 italic text-sm">No assessment criteria listed</li>
@@ -98,8 +98,8 @@ const SimulationTab: React.FC<SimulationTabProps> = ({ caseData }) => {
             <ul className="space-y-2">
               {caseData.simulation?.coreAssessment?.criticalActions?.map((action, index) => (
                 <li key={index} className="flex items-start">
-                  <span className="text-red-500 mr-2 mt-1">•</span>
-                  <span className="text-red-700 text-sm font-medium">{action}</span>
+                  <span className="text-red-500 mr-3 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-red-700 text-sm font-medium leading-relaxed">{action}</span>
                 </li>
               )) || (
                 <li className="text-red-600 italic text-sm">No critical actions specified</li>
@@ -116,8 +116,8 @@ const SimulationTab: React.FC<SimulationTabProps> = ({ caseData }) => {
             <ul className="space-y-2">
               {caseData.simulation?.coreAssessment?.performanceIndicators?.map((indicator, index) => (
                 <li key={index} className="flex items-start">
-                  <span className="text-blue-500 mr-2 mt-1">•</span>
-                  <span className="text-blue-700 text-sm">{indicator}</span>
+                  <span className="text-blue-500 mr-3 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-blue-700 text-sm leading-relaxed">{indicator}</span>
                 </li>
               )) || (
                 <li className="text-blue-600 italic text-sm">No performance indicators specified</li>
@@ -134,8 +134,8 @@ const SimulationTab: React.FC<SimulationTabProps> = ({ caseData }) => {
             <ul className="space-y-2">
               {caseData.simulation?.coreAssessment?.safetyConsiderations?.map((safety, index) => (
                 <li key={index} className="flex items-start">
-                  <span className="text-yellow-500 mr-2 mt-1">•</span>
-                  <span className="text-yellow-700 text-sm font-medium">{safety}</span>
+                  <span className="text-yellow-500 mr-3 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-yellow-700 text-sm font-medium leading-relaxed">{safety}</span>
                 </li>
               )) || (
                 <li className="text-yellow-600 italic text-sm">No safety considerations specified</li>

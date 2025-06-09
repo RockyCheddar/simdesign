@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParameterQuestions, useParameterAnswers, useCaseCreationStore, useRefinedObjectives, useGenerationProgress } from '@/stores/caseCreationStore';
 
 const ParameterQuestionsStep: React.FC = () => {
@@ -13,12 +13,16 @@ const ParameterQuestionsStep: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
+  
+  // Ref to prevent double execution in React Strict Mode
+  const hasTriggeredGeneration = useRef(false);
 
   const handleGenerateQuestions = useCallback(async () => {
     setIsGenerating(true);
     try {
       await generateParameterQuestions();
       setHasGenerated(true);
+      hasTriggeredGeneration.current = true;
     } catch (error) {
       console.error('Failed to generate questions:', error);
     } finally {
@@ -27,8 +31,13 @@ const ParameterQuestionsStep: React.FC = () => {
   }, [generateParameterQuestions]);
 
   // Generate questions when component mounts if not already generated
+  // Using ref to prevent double execution in React Strict Mode
   useEffect(() => {
-    if (!hasGenerated && parameterQuestions.length === 0 && refinedObjectives.selectedObjectives?.length) {
+    if (!hasGenerated && 
+        parameterQuestions.length === 0 && 
+        refinedObjectives.selectedObjectives?.length &&
+        !hasTriggeredGeneration.current) {
+      hasTriggeredGeneration.current = true;
       handleGenerateQuestions();
     }
   }, [refinedObjectives.selectedObjectives, hasGenerated, parameterQuestions.length, handleGenerateQuestions]);
@@ -213,8 +222,6 @@ const ParameterQuestionsStep: React.FC = () => {
 
   const currentQuestion = parameterQuestions[currentQuestionIndex];
   const currentAnswer = parameterAnswers[currentQuestion?.id] as string;
-  const answeredCount = Object.keys(parameterAnswers).length;
-  const progressPercentage = (answeredCount / parameterQuestions.length) * 100;
 
   return (
     <div className="p-8">
