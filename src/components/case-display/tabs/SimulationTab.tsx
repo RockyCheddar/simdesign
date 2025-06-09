@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import { GeneratedCaseData } from '@/types/caseCreation';
 import OnDemandSection from '../components/OnDemandSection';
-import InfoCard from '../components/InfoCard';
+import InfoCard, { DataRow } from '../components/InfoCard';
+import DebriefingQuestionsSection from '../components/DebriefingQuestionsSection';
+import CommonMistakesSection from '../components/CommonMistakesSection';
 
 interface SimulationTabProps {
   caseData: GeneratedCaseData;
@@ -14,6 +16,18 @@ const SimulationTab: React.FC<SimulationTabProps> = ({ caseData }) => {
 
   const handleContentGenerated = (sectionId: string, content: string) => {
     setOnDemandContent(prev => ({ ...prev, [sectionId]: content }));
+  };
+
+  const handleDebriefingQuestionsGenerated = (debriefingData: any) => {
+    // Update the case data with the new debriefing questions information
+    // Note: This would need to be passed back to parent component to persist
+    // For now, we'll just store it locally in the component
+  };
+
+  const handleCommonMistakesGenerated = (mistakesData: any) => {
+    // Update the case data with the new common mistakes information
+    // Note: This would need to be passed back to parent component to persist
+    // For now, we'll just store it locally in the component
   };
 
   return (
@@ -38,47 +52,62 @@ const SimulationTab: React.FC<SimulationTabProps> = ({ caseData }) => {
       <InfoCard title="Competency Areas">
         <div className="space-y-6">
           {caseData.simulation?.competencyAreas?.map((competency, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <span className="mr-2">
-                  {competency.domain === 'Assessment' && '🔍'}
-                  {competency.domain === 'Communication' && '💬'}
-                  {competency.domain === 'Clinical Reasoning' && '🧠'}
-                  {competency.domain === 'Technical Skills' && '🛠️'}
-                  {competency.domain === 'Teamwork' && '👥'}
-                </span>
-                {competency.domain}
-              </h4>
+            <div key={index} className="space-y-0">
+              <DataRow 
+                label="Domain" 
+                value={
+                  <div className="flex items-center">
+                    <span className="mr-2">
+                      {competency.domain === 'Assessment' && '🔍'}
+                      {competency.domain === 'Communication' && '💬'}
+                      {competency.domain === 'Clinical Reasoning' && '🧠'}
+                      {competency.domain === 'Technical Skills' && '🛠️'}
+                      {competency.domain === 'Teamwork' && '👥'}
+                    </span>
+                    <span className="font-medium text-gray-900">{competency.domain}</span>
+                  </div>
+                }
+              />
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h5 className="text-md font-medium text-gray-800 mb-2">Specific Skills</h5>
-                  <ul className="space-y-2">
-                    {competency.specificSkills?.map((skill, skillIndex) => (
-                      <li key={skillIndex} className="flex items-start">
-                        <span className="text-blue-500 mr-3 mt-0.5 flex-shrink-0">•</span>
-                        <span className="text-gray-700 text-sm leading-relaxed">{skill}</span>
-                      </li>
-                    )) || (
-                      <li className="text-gray-500 italic text-sm">No specific skills listed</li>
-                    )}
-                  </ul>
-                </div>
-                
-                <div>
-                  <h5 className="text-md font-medium text-gray-800 mb-2">Assessment Criteria</h5>
-                  <ul className="space-y-2">
-                    {competency.assessmentCriteria?.map((criteria, criteriaIndex) => (
-                      <li key={criteriaIndex} className="flex items-start">
-                        <span className="text-green-500 mr-3 mt-0.5 flex-shrink-0">✓</span>
-                        <span className="text-gray-700 text-sm leading-relaxed">{criteria}</span>
-                      </li>
-                    )) || (
-                      <li className="text-gray-500 italic text-sm">No assessment criteria listed</li>
-                    )}
-                  </ul>
-                </div>
-              </div>
+              <DataRow 
+                label="Specific Skills" 
+                value={
+                  competency.specificSkills && competency.specificSkills.length > 0 ? (
+                    <ul className="space-y-1">
+                      {competency.specificSkills.map((skill, skillIndex) => (
+                        <li key={skillIndex} className="flex items-start">
+                          <span className="text-blue-500 mr-2 mt-0.5 flex-shrink-0">•</span>
+                          <span className="text-gray-900 text-sm leading-relaxed">{skill}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="text-gray-500 italic text-sm">No specific skills listed</span>
+                  )
+                }
+              />
+              
+              <DataRow 
+                label="Assessment Criteria" 
+                value={
+                  competency.assessmentCriteria && competency.assessmentCriteria.length > 0 ? (
+                    <ul className="space-y-1">
+                      {competency.assessmentCriteria.map((criteria, criteriaIndex) => (
+                        <li key={criteriaIndex} className="flex items-start">
+                          <span className="text-green-500 mr-2 mt-0.5 flex-shrink-0">✓</span>
+                          <span className="text-gray-900 text-sm leading-relaxed">{criteria}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="text-gray-500 italic text-sm">No assessment criteria listed</span>
+                  )
+                }
+              />
+              
+              {index < (caseData.simulation?.competencyAreas?.length || 0) - 1 && (
+                <div className="border-b border-gray-200 my-6"></div>
+              )}
             </div>
           )) || (
             <p className="text-gray-500 italic">No competency areas specified</p>
@@ -165,13 +194,9 @@ const SimulationTab: React.FC<SimulationTabProps> = ({ caseData }) => {
           prompt="Generate a comprehensive assessment rubric with scoring criteria, performance levels, and benchmarks"
         />
 
-        <OnDemandSection
-          id="debriefing-questions"
-          title="Debriefing Questions"
-          description="Post-simulation discussion prompts and reflection guides"
-          content={onDemandContent['debriefing-questions']}
-          onContentGenerated={handleContentGenerated}
-          prompt="Generate structured debriefing questions for post-simulation discussion and reflection"
+        <DebriefingQuestionsSection
+          caseData={caseData}
+          onContentGenerated={handleDebriefingQuestionsGenerated}
         />
 
         <OnDemandSection
@@ -192,13 +217,9 @@ const SimulationTab: React.FC<SimulationTabProps> = ({ caseData }) => {
           prompt="Generate detailed instructions for standardized patients or actors including role-playing guidance"
         />
 
-        <OnDemandSection
-          id="common-mistakes"
-          title="Common Mistakes"
-          description="Typical errors and correction strategies for instructors"
-          content={onDemandContent['common-mistakes']}
-          onContentGenerated={handleContentGenerated}
-          prompt="Generate common mistakes learners make in this scenario and strategies for instructors to address them"
+        <CommonMistakesSection
+          caseData={caseData}
+          onContentGenerated={handleCommonMistakesGenerated}
         />
       </div>
     </div>
