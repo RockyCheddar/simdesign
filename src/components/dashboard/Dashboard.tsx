@@ -8,6 +8,8 @@ import { loadAllCases, getStorageStats } from '@/utils/caseStorage';
 import { initializeMockData } from '@/utils/mockData';
 import { debugCaseCreation } from '@/utils/debugCaseCreation';
 import CaseCard from './CaseCard';
+import CaseTable from './CaseTable';
+import ViewToggle from './ViewToggle';
 import EmptyState from './EmptyState';
 import UserMenu from '../auth/UserMenu';
 import { toast } from 'react-hot-toast';
@@ -21,6 +23,14 @@ const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date' | 'title' | 'difficulty'>('date');
+  const [isTableView, setIsTableView] = useState<boolean>(() => {
+    // Load saved preference from localStorage
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('healthcaresim-view-preference');
+      return saved === 'table';
+    }
+    return false;
+  });
 
   // Load cases on component mount
   useEffect(() => {
@@ -112,6 +122,14 @@ const Dashboard: React.FC = () => {
 
   const handleCreateFromDocument = () => {
     router.push('/create-from-document');
+  };
+
+  const handleViewToggle = (newIsTableView: boolean) => {
+    setIsTableView(newIsTableView);
+    // Save preference to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('healthcaresim-view-preference', newIsTableView ? 'table' : 'card');
+    }
   };
 
   // Filter and sort cases
@@ -303,7 +321,7 @@ const Dashboard: React.FC = () => {
         {/* Filters and Search */}
         {cases.length > 0 && (
           <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
                   Search Cases
@@ -350,22 +368,37 @@ const Dashboard: React.FC = () => {
                   <option value="difficulty">Difficulty</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  View Type
+                </label>
+                <ViewToggle isTableView={isTableView} onToggle={handleViewToggle} />
+              </div>
             </div>
           </div>
         )}
 
-        {/* Cases Grid or Empty State */}
+        {/* Cases Display - Grid/Table or Empty State */}
         {filteredAndSortedCases.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredAndSortedCases.map((simulationCase) => (
-              <CaseCard
-                key={simulationCase.id}
-                simulationCase={simulationCase}
-                onDelete={handleDeleteCase}
-                onView={handleViewCase}
-              />
-            ))}
-          </div>
+          isTableView ? (
+            <CaseTable
+              cases={filteredAndSortedCases}
+              onDelete={handleDeleteCase}
+              onView={handleViewCase}
+            />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredAndSortedCases.map((simulationCase) => (
+                <CaseCard
+                  key={simulationCase.id}
+                  simulationCase={simulationCase}
+                  onDelete={handleDeleteCase}
+                  onView={handleViewCase}
+                />
+              ))}
+            </div>
+          )
         ) : cases.length === 0 ? (
           <EmptyState onCreateCase={handleCreateCase} />
         ) : (
