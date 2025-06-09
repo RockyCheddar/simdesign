@@ -250,18 +250,18 @@ const Dashboard: React.FC = () => {
         {/* AI Action Buttons */}
         <div className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl">
-            {/* Primary Action - AI Create Case */}
+            {/* Primary Action - Generate Case */}
             <button
               onClick={handleCreateCase}
-              className="group relative bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+              className="group relative bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-8 py-6 rounded-xl font-semibold hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
             >
               <div className="flex items-center justify-center space-x-3">
-                <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M9.5 16.5c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm0-4.5c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm0-4.5c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm3.5 0c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm3.5 0c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm0 4.5c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8zm0 4.5c0 0.4 0.4 0.8 0.8 0.8s0.8-0.4 0.8-0.8-0.4-0.8-0.8-0.8-0.8 0.4-0.8 0.8z"/>
-                  </svg>
-                </div>
-                <span className="text-lg">AI Create Case</span>
+                <svg className="w-7 h-7 text-white group-hover:text-emerald-100 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L13.39 8.42L20 9L13.39 9.58L12 16L10.61 9.58L4 9L10.61 8.42L12 2Z"/>
+                  <path d="M19 15L19.94 17.06L22 18L19.94 18.94L19 21L18.06 18.94L16 18L18.06 17.06L19 15Z"/>
+                  <path d="M5 7L5.94 9.06L8 10L5.94 10.94L5 13L4.06 10.94L2 10L4.06 9.06L5 7Z"/>
+                </svg>
+                <span className="text-lg">Generate Case</span>
               </div>
               <div className="absolute inset-0 rounded-xl bg-white/0 group-hover:bg-white/5 transition-colors"></div>
             </button>
@@ -269,7 +269,7 @@ const Dashboard: React.FC = () => {
             {/* Secondary Action - Upload & Enhance */}
             <button
               onClick={handleCreateFromDocument}
-              className="group relative bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-8 py-6 rounded-xl font-semibold hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+              className="group relative bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
             >
               <div className="flex items-center justify-center space-x-3">
                 <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
@@ -285,7 +285,7 @@ const Dashboard: React.FC = () => {
             {/* Tertiary Action - Upload JSON */}
             <button
               onClick={handleUploadJSON}
-              className="group relative bg-gradient-to-r from-violet-500 to-violet-600 text-white px-8 py-6 rounded-xl font-semibold hover:from-violet-600 hover:to-violet-700 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+              className="group relative bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-6 rounded-xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
             >
               <div className="flex items-center justify-center space-x-3">
                 <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
