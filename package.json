@@ -29,6 +29,7 @@
     "@anthropic-ai/sdk": "^0.52.0",
     "@types/uuid": "^10.0.0",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.1",
     "lucide-react": "^0.512.0",
     "mammoth": "^1.9.1",
     "next": "15.3.2",
